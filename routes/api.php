@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\HealthController;
+use App\Modules\Contratacao\Interface\Http\ContratacaoController;
 use App\Modules\Identidade\Interface\Http\AuthController;
 use App\Modules\Identidade\Interface\Http\CadastroController;
 use App\Modules\Identidade\Interface\Http\MeController;
@@ -24,5 +25,13 @@ Route::prefix('v1')->group(function () {
     Route::middleware('jwt.auth')->group(function () {
         Route::get('/me', [MeController::class, 'show']);
         Route::get('/me/modulos', [MeController::class, 'modulos']);
+
+        Route::middleware('contratacao.access')->prefix('contratacao')->group(function () {
+            Route::get('/', [ContratacaoController::class, 'index']);
+            Route::post('/', [ContratacaoController::class, 'store']);
+            Route::get('/{uuid}', [ContratacaoController::class, 'show']);
+            Route::patch('/{uuid}', [ContratacaoController::class, 'update']);
+            Route::post('/{uuid}/submeter', [ContratacaoController::class, 'submeter']);
+        });
     });
 });

@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Modules\Contratacao\Domain\Exceptions\ContratacaoDomainException;
 use App\Modules\Identidade\Domain\Exceptions\IdentidadeDomainException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\JsonResponse;
@@ -31,6 +32,14 @@ class Handler extends ExceptionHandler
         });
 
         $this->renderable(function (IdentidadeDomainException $e, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return new JsonResponse($e->payload(), $e->statusCode());
+            }
+
+            return null;
+        });
+
+        $this->renderable(function (ContratacaoDomainException $e, Request $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
                 return new JsonResponse($e->payload(), $e->statusCode());
             }

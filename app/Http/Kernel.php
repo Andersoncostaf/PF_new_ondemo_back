@@ -66,5 +66,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'tenant.host' => \App\Http\Middleware\ResolveTenantFromHost::class,
         'jwt.auth' => \App\Http\Middleware\JwtAuthenticate::class,
+        'contratacao.access' => \App\Http\Middleware\EnsureContratacaoAccess::class,
     ];
 }

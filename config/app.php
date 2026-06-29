@@ -169,6 +169,7 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\Modules\IdentidadeServiceProvider::class,
+        App\Providers\Modules\ContratacaoServiceProvider::class,
     ])->toArray(),
 
     /*

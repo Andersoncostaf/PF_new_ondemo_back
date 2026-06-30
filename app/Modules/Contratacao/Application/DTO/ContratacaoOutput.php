@@ -20,6 +20,7 @@ final class ContratacaoOutput
             'local' => $contratacao->local,
             'prazo_desejado' => $contratacao->prazo_desejado?->format('Y-m-d'),
             'termo_referencia' => $contratacao->termo_referencia,
+            'termo_referencia_campos' => $contratacao->termo_referencia_campos ?? [],
             'status' => $contratacao->status,
             'criado_por_usuario_id' => $contratacao->criado_por_usuario_id,
             'created_at' => $contratacao->created_at?->toIso8601String(),

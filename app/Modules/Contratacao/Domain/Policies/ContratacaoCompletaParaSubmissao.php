@@ -3,6 +3,7 @@
 namespace App\Modules\Contratacao\Domain\Policies;
 
 use App\Models\Contratacao;
+use App\Modules\Contratacao\Domain\TermoReferenciaCampos;
 
 final class ContratacaoCompletaParaSubmissao
 {
@@ -12,7 +13,7 @@ final class ContratacaoCompletaParaSubmissao
             return false;
         }
 
-        if (blank($contratacao->termo_referencia)) {
+        if (! self::termoReferenciaCompleto($contratacao)) {
             return false;
         }
 
@@ -34,8 +35,8 @@ final class ContratacaoCompletaParaSubmissao
             $missing[] = 'categoria_servico';
         }
 
-        if (blank($contratacao->termo_referencia)) {
-            $missing[] = 'termo_referencia';
+        if (! self::termoReferenciaCompleto($contratacao)) {
+            $missing[] = 'termo_referencia_campos';
         }
 
         if ($contratacao->qqpItens()->count() < 1) {
@@ -43,5 +44,14 @@ final class ContratacaoCompletaParaSubmissao
         }
 
         return $missing;
+    }
+
+    private static function termoReferenciaCompleto(Contratacao $contratacao): bool
+    {
+        if (TermoReferenciaCampos::isComplete($contratacao->termo_referencia_campos)) {
+            return true;
+        }
+
+        return ! blank($contratacao->termo_referencia);
     }
 }

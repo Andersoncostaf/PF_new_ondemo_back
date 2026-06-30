@@ -2,6 +2,7 @@
 
 namespace App\Modules\Contratacao\Interface\Http\Requests;
 
+use App\Modules\Contratacao\Domain\TermoReferenciaCampos;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateContratacaoRequest extends FormRequest
@@ -16,7 +17,7 @@ class UpdateContratacaoRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        return array_merge([
             'titulo' => ['sometimes', 'nullable', 'string', 'max:255'],
             'categoria_servico' => ['sometimes', 'nullable', 'string', 'max:128'],
             'local' => ['sometimes', 'nullable', 'string', 'max:255'],
@@ -27,6 +28,6 @@ class UpdateContratacaoRequest extends FormRequest
             'qqp_itens.*.quantidade' => ['nullable', 'numeric', 'min:0.0001'],
             'qqp_itens.*.unidade' => ['nullable', 'string', 'max:32'],
             'qqp_itens.*.ordem' => ['nullable', 'integer', 'min:0'],
-        ];
+        ], TermoReferenciaCampos::validationRules());
     }
 }

@@ -6,6 +6,7 @@ use App\Models\Contratacao;
 use App\Models\ContratacaoQqpItem;
 use App\Modules\Contratacao\Application\DTO\ContratacaoInput;
 use App\Modules\Contratacao\Application\Port\Out\ContratacaoRepositoryPort;
+use App\Modules\Contratacao\Domain\TermoReferenciaCampos;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
 
@@ -21,7 +22,8 @@ final class EloquentContratacaoRepository implements ContratacaoRepositoryPort
             'categoria_servico' => $input->categoriaServico,
             'local' => $input->local,
             'prazo_desejado' => $input->prazoDesejado,
-            'termo_referencia' => $input->termoReferencia,
+            'termo_referencia' => $this->resolveTermoReferenciaText($input),
+            'termo_referencia_campos' => $input->termoReferenciaCampos,
             'status' => 'rascunho',
         ]);
 
@@ -61,7 +63,10 @@ final class EloquentContratacaoRepository implements ContratacaoRepositoryPort
             $attributes['prazo_desejado'] = $input->prazoDesejado !== '' ? $input->prazoDesejado : null;
         }
 
-        if ($input->termoReferencia !== null) {
+        if ($input->termoReferenciaCampos !== null) {
+            $attributes['termo_referencia_campos'] = $input->termoReferenciaCampos;
+            $attributes['termo_referencia'] = TermoReferenciaCampos::toText($input->termoReferenciaCampos);
+        } elseif ($input->termoReferencia !== null) {
             $attributes['termo_referencia'] = $input->termoReferencia;
         }
 
@@ -113,5 +118,14 @@ final class EloquentContratacaoRepository implements ContratacaoRepositoryPort
                 'unidade' => $item->unidade !== '' ? $item->unidade : 'un',
             ]);
         }
+    }
+
+    private function resolveTermoReferenciaText(ContratacaoInput $input): ?string
+    {
+        if ($input->termoReferenciaCampos !== null) {
+            return TermoReferenciaCampos::toText($input->termoReferenciaCampos);
+        }
+
+        return $input->termoReferencia;
     }
 }

@@ -26,11 +26,13 @@ class Contratacao extends Model
         'local',
         'prazo_desejado',
         'termo_referencia',
+        'termo_referencia_campos',
         'status',
     ];
 
     protected $casts = [
         'prazo_desejado' => 'date',
+        'termo_referencia_campos' => 'array',
     ];
 
     public function tenant(): BelongsTo

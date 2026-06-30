@@ -4,6 +4,8 @@ namespace App\Modules\Contratacao\Domain;
 
 final class TermoReferenciaCampos
 {
+    public const CUSTOM_KEY = 'campos_personalizados';
+
     public const KEYS = [
         'objetivo',
         'escopo',
@@ -95,13 +97,17 @@ final class TermoReferenciaCampos
             $sections[] = ($labels[$key] ?? $key)."\n".$value;
         }
 
+        foreach (self::customFieldsFrom($campos) as $custom) {
+            $sections[] = $custom['titulo']."\n".$custom['conteudo'];
+        }
+
         return implode("\n\n", $sections);
     }
 
     /**
      * @param array<string, mixed> $data
      *
-     * @return array<string, string|null>
+     * @return array<string, mixed>
      */
     public static function normalize(array $data): array
     {
@@ -116,7 +122,81 @@ final class TermoReferenciaCampos
             $normalized[$key] = $value !== null ? trim((string) $value) : null;
         }
 
+        if (array_key_exists(self::CUSTOM_KEY, $data) && is_array($data[self::CUSTOM_KEY])) {
+            $custom = self::normalizeCustomFields($data[self::CUSTOM_KEY]);
+
+            if ($custom !== []) {
+                $normalized[self::CUSTOM_KEY] = $custom;
+            }
+        }
+
         return $normalized;
+    }
+
+    /**
+     * @param array<int, mixed> $items
+     *
+     * @return list<array{id: string, titulo: string, conteudo: string, ordem: int}>
+     */
+    public static function normalizeCustomFields(array $items): array
+    {
+        $normalized = [];
+
+        foreach ($items as $index => $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $titulo = trim((string) ($item['titulo'] ?? ''));
+            $conteudo = trim((string) ($item['conteudo'] ?? ''));
+
+            if ($titulo === '' && $conteudo === '') {
+                continue;
+            }
+
+            $normalized[] = [
+                'id' => ! blank($item['id'] ?? null) ? (string) $item['id'] : (string) \Illuminate\Support\Str::uuid(),
+                'titulo' => $titulo,
+                'conteudo' => $conteudo,
+                'ordem' => (int) ($item['ordem'] ?? $index),
+            ];
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @param array<string, mixed>|null $campos
+     *
+     * @return list<array{titulo: string, conteudo: string}>
+     */
+    public static function customFieldsFrom(?array $campos): array
+    {
+        if ($campos === null || ! isset($campos[self::CUSTOM_KEY]) || ! is_array($campos[self::CUSTOM_KEY])) {
+            return [];
+        }
+
+        $fields = [];
+
+        foreach ($campos[self::CUSTOM_KEY] as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $titulo = trim((string) ($item['titulo'] ?? ''));
+            $conteudo = trim((string) ($item['conteudo'] ?? ''));
+
+            if ($titulo === '' || $conteudo === '') {
+                continue;
+            }
+
+            $fields[] = [
+                'titulo' => $titulo,
+                'conteudo' => $conteudo,
+            ];
+        }
+
+        return $fields;
     }
 
     /**
@@ -131,6 +211,12 @@ final class TermoReferenciaCampos
         foreach (self::KEYS as $key) {
             $rules["{$prefix}.{$key}"] = ['nullable', 'string', 'max:10000'];
         }
+
+        $rules["{$prefix}.".self::CUSTOM_KEY] = ['sometimes', 'nullable', 'array'];
+        $rules["{$prefix}.".self::CUSTOM_KEY.'.*.id'] = ['nullable', 'string', 'max:64'];
+        $rules["{$prefix}.".self::CUSTOM_KEY.'.*.titulo'] = ['nullable', 'string', 'max:255'];
+        $rules["{$prefix}.".self::CUSTOM_KEY.'.*.conteudo'] = ['nullable', 'string', 'max:10000'];
+        $rules["{$prefix}.".self::CUSTOM_KEY.'.*.ordem'] = ['nullable', 'integer', 'min:0'];
 
         return $rules;
     }

@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Tenant;
-use App\Models\TenantFilial;
 use App\Models\UsuarioCliente;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -49,22 +48,5 @@ class TenantDemoSeeder extends Seeder
             ]
         );
 
-        TenantFilial::query()->firstOrCreate(
-            ['tenant_id' => $tenant->id, 'codigo' => '201'],
-            [
-                'razao_social' => 'COMPANHIA REFINADORA DA AMAZONIA',
-                'cnpj' => '83663484000186',
-                'endereco' => 'ROD. ARTHUR BERNARDES 5555, 66825-000, TAPANA, BELEM/PA',
-            ]
-        );
-
-        TenantFilial::query()->firstOrCreate(
-            ['tenant_id' => $tenant->id, 'codigo' => '202'],
-            [
-                'razao_social' => 'CLIENTE EXEMPLO FILIAL SP',
-                'cnpj' => '12345678000270',
-                'endereco' => 'AV. PAULISTA 1000, 01310-100, BELA VISTA, SAO PAULO/SP',
-            ]
-        );
     }
 }

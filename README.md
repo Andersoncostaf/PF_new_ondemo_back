@@ -37,12 +37,21 @@ php artisan db:seed --class=TenantDemoSeeder    # opcional — seed demo
 
 **Supabase:** `config/database.php` já usa `DB_SSLMODE=require`. Homolog: porta **6543** (pooler).
 
+## Desenvolvimento local (Windows + Supabase, sem Docker)
+
+1. Copiar `env/laravel.local.supabase.example` para `.env` e ajustar credenciais Supabase.
+2. `php artisan key:generate` (se `APP_KEY` estiver vazio).
+3. **`php artisan migrate --force`** — obrigatório antes de usar Contratação (tabelas `contratacoes`, `contratacao_qqp_itens`, etc.). Sem migrate, submeter solicitação retorna `relation "contratacoes" does not exist`.
+4. Opcional: `php artisan db:seed --class=TenantDemoSeeder` (usuário demo).
+5. Subir API + front: `scripts\dev-local-supabase.ps1` na raiz do monorepo.
+
 ## Desenvolvimento local (Docker)
 
 Monorepo `Portal_Fornecedor_new-ondemo`:
 
 ```bash
 docker compose --env-file .env up -d --build
+php artisan migrate --force
 ```
 
 ## API (rascunho Fase 0)

@@ -46,6 +46,32 @@ class ContratacaoWizardTest extends TestCase
         ]);
     }
 
+    public function test_salva_rascunho_parcial_com_qqp_vazio(): void
+    {
+        $tenant = $this->seedTenantDemo();
+        $token = $this->loginToken($tenant, 'admin@clientex.local', 'password');
+
+        $response = $this->postJson('/api/v1/contratacao', [
+            'titulo' => 'Serviço parcial',
+            'categoria_servico' => 'Facilities',
+            'termo_referencia_campos' => [
+                'escopo' => 'Escopo preenchido no passo 2.',
+            ],
+            'qqp_itens' => [
+                ['descricao' => '', 'quantidade' => 1, 'unidade' => 'un'],
+            ],
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('titulo', 'Serviço parcial')
+            ->assertJsonPath('status', 'rascunho')
+            ->assertJsonPath('qqp_itens', []);
+
+        $this->assertDatabaseCount('contratacao_qqp_itens', 0);
+    }
+
     public function test_submete_contratacao_completa(): void
     {
         $tenant = $this->seedTenantDemo();

@@ -7,6 +7,8 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreContratacaoRequest extends FormRequest
 {
+    use SanitizesQqpItensInput;
+
     public function authorize(): bool
     {
         return true;

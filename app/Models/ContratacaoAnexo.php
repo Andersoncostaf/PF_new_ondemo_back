@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class ContratacaoQqpItem extends Model
+class ContratacaoAnexo extends Model
 {
     use HasUuids;
 
@@ -14,21 +14,19 @@ class ContratacaoQqpItem extends Model
 
     protected $keyType = 'string';
 
-    protected $table = 'contratacao_qqp_itens';
+    protected $table = 'contratacao_anexos';
 
     protected $fillable = [
         'contratacao_id',
-        'ordem',
         'descricao',
-        'quantidade',
-        'unidade',
-        'valor_unitario',
+        'nome_arquivo',
+        'storage_path',
+        'mime_type',
+        'tamanho_bytes',
     ];
 
     protected $casts = [
-        'quantidade' => 'decimal:4',
-        'valor_unitario' => 'decimal:4',
-        'ordem' => 'integer',
+        'tamanho_bytes' => 'integer',
     ];
 
     public function contratacao(): BelongsTo

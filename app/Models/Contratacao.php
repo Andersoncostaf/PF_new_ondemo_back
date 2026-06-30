@@ -21,18 +21,22 @@ class Contratacao extends Model
         'uuid',
         'tenant_id',
         'criado_por_usuario_id',
+        'filial_id',
+        'departamento',
         'titulo',
         'categoria_servico',
         'local',
         'prazo_desejado',
         'termo_referencia',
         'termo_referencia_campos',
+        'solicitacao_servico',
         'status',
     ];
 
     protected $casts = [
         'prazo_desejado' => 'date',
         'termo_referencia_campos' => 'array',
+        'solicitacao_servico' => 'array',
     ];
 
     public function tenant(): BelongsTo
@@ -48,5 +52,15 @@ class Contratacao extends Model
     public function qqpItens(): HasMany
     {
         return $this->hasMany(ContratacaoQqpItem::class, 'contratacao_id')->orderBy('ordem');
+    }
+
+    public function filial(): BelongsTo
+    {
+        return $this->belongsTo(TenantFilial::class, 'filial_id');
+    }
+
+    public function anexos(): HasMany
+    {
+        return $this->hasMany(ContratacaoAnexo::class, 'contratacao_id')->orderBy('created_at');
     }
 }

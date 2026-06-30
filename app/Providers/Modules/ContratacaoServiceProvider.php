@@ -11,5 +11,6 @@ class ContratacaoServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(ContratacaoRepositoryPort::class, EloquentContratacaoRepository::class);
+        $this->app->singleton(\App\Modules\Contratacao\Infrastructure\Storage\ContratacaoAnexoStorage::class);
     }
 }

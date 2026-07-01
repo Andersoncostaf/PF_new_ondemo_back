@@ -54,13 +54,29 @@ final class ContratacaoOutput
      */
     public static function listItem(Contratacao $contratacao): array
     {
+        $contratacao->loadMissing(['criadoPor']);
+
         return [
             'uuid' => $contratacao->uuid,
+            'numero_exibicao' => self::numeroExibicao($contratacao->uuid),
             'titulo' => $contratacao->titulo,
+            'empresa' => $contratacao->empresa,
+            'empresa_cnpj' => $contratacao->empresa_cnpj,
+            'departamento' => $contratacao->departamento,
+            'criado_por_nome' => $contratacao->criadoPor?->nome,
             'categoria_servico' => $contratacao->categoria_servico,
             'status' => $contratacao->status,
             'created_at' => $contratacao->created_at?->toIso8601String(),
             'updated_at' => $contratacao->updated_at?->toIso8601String(),
+            'fornecedor_vencedor' => null,
+            'data_inicio_analise' => null,
+            'responsavel_analise' => null,
+            'apontamentos_pendentes' => null,
         ];
+    }
+
+    private static function numeroExibicao(string $uuid): string
+    {
+        return strtoupper(substr(str_replace('-', '', $uuid), 0, 8));
     }
 }

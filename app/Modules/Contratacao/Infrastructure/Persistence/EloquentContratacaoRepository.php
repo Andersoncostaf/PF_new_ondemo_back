@@ -5,6 +5,7 @@ namespace App\Modules\Contratacao\Infrastructure\Persistence;
 use App\Models\Contratacao;
 use App\Models\ContratacaoQqpItem;
 use App\Modules\Contratacao\Application\DTO\ContratacaoInput;
+use App\Modules\Contratacao\Application\DTO\ContratacaoListFilter;
 use App\Modules\Contratacao\Application\Port\Out\ContratacaoRepositoryPort;
 use App\Modules\Contratacao\Domain\TermoReferenciaCampos;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -115,12 +116,32 @@ final class EloquentContratacaoRepository implements ContratacaoRepositoryPort
         return $contratacao->fresh(['qqpItens', 'anexos']);
     }
 
-    public function listByTenant(string $tenantId, int $perPage = 15, int $page = 1): LengthAwarePaginator
+    public function listByTenant(string $tenantId, ContratacaoListFilter $filter): LengthAwarePaginator
     {
-        return Contratacao::query()
-            ->where('tenant_id', $tenantId)
+        $query = Contratacao::query()
+            ->with(['criadoPor'])
+            ->where('tenant_id', $tenantId);
+
+        if ($filter->dataInicio !== null) {
+            $query->whereDate('created_at', '>=', $filter->dataInicio);
+        }
+
+        if ($filter->dataFim !== null) {
+            $query->whereDate('created_at', '<=', $filter->dataFim);
+        }
+
+        if ($filter->numero !== null) {
+            $numero = strtoupper($filter->numero);
+            $query->where(function ($builder) use ($numero) {
+                $builder
+                    ->whereRaw('UPPER(SUBSTRING(REPLACE(uuid::text, \'-\', \'\'), 1, 8)) LIKE ?', ["%{$numero}%"])
+                    ->orWhere('uuid', 'ilike', "%{$numero}%");
+            });
+        }
+
+        return $query
             ->orderByDesc('created_at')
-            ->paginate(perPage: $perPage, page: $page);
+            ->paginate(perPage: $filter->perPage, page: $filter->page);
     }
 
     /**

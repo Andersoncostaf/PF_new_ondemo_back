@@ -4,6 +4,7 @@ namespace App\Modules\Contratacao\Application\Port\Out;
 
 use App\Models\Contratacao;
 use App\Modules\Contratacao\Application\DTO\ContratacaoInput;
+use App\Modules\Contratacao\Application\DTO\ContratacaoListFilter;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface ContratacaoRepositoryPort
@@ -16,5 +17,5 @@ interface ContratacaoRepositoryPort
 
     public function submeter(Contratacao $contratacao): Contratacao;
 
-    public function listByTenant(string $tenantId, int $perPage = 15, int $page = 1): LengthAwarePaginator;
+    public function listByTenant(string $tenantId, ContratacaoListFilter $filter): LengthAwarePaginator;
 }

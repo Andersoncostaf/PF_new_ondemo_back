@@ -12,7 +12,9 @@ use App\Modules\Identidade\Application\Port\Out\UsuarioClienteRepositoryPort;
 use App\Modules\Identidade\Domain\Exceptions\CnpjDuplicadoException;
 use App\Modules\Identidade\Domain\Exceptions\EmailJaCadastradoNoTenantException;
 use App\Modules\Identidade\Domain\Exceptions\SlugDuplicadoException;
+use App\Modules\Identidade\Domain\Exceptions\SlugReservadoException;
 use App\Modules\Identidade\Domain\Policies\EmailUnicoPorTenant;
+use App\Modules\Identidade\Domain\Policies\ReservedSlugPolicy;
 use App\Modules\Identidade\Domain\Services\CnpjValidator;
 use App\Modules\Identidade\Domain\Services\SlugGenerator;
 use Illuminate\Support\Carbon;
@@ -39,7 +41,15 @@ final class CadastrarTenantComPrimeiroUsuarioUseCase
             ? Str::slug($input->slug, '-', 'pt')
             : SlugGenerator::fromRazaoSocial($input->razaoSocial);
 
-        if ($slug === '' || $this->tenantRepository->existsBySlug($slug)) {
+        if ($slug === '') {
+            throw new SlugDuplicadoException;
+        }
+
+        if (ReservedSlugPolicy::isReserved($slug)) {
+            throw new SlugReservadoException;
+        }
+
+        if ($this->tenantRepository->existsBySlug($slug)) {
             throw new SlugDuplicadoException;
         }
 

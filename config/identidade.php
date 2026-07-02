@@ -12,4 +12,9 @@ return [
         'portalfornecedor.{slug}.local'
     ),
 
+    'frontend_tenant_url_template' => env(
+        'FRONTEND_TENANT_URL_TEMPLATE',
+        'http://portalfornecedor.{slug}.local:4200'
+    ),
+
 ];

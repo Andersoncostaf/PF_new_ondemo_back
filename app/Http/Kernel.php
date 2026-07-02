@@ -67,5 +67,8 @@ class Kernel extends HttpKernel
         'tenant.host' => \App\Http\Middleware\ResolveTenantFromHost::class,
         'jwt.auth' => \App\Http\Middleware\JwtAuthenticate::class,
         'contratacao.access' => \App\Http\Middleware\EnsureContratacaoAccess::class,
+        'contratacao.wizard' => \App\Http\Middleware\EnsureContratacaoWizardAccess::class,
+        'contratacao.aprovacao' => \App\Http\Middleware\EnsureContratacaoAprovacaoAccess::class,
+        'identidade.admin_tenant' => \App\Http\Middleware\EnsureAdminTenantAccess::class,
     ];
 }

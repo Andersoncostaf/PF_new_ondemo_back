@@ -41,6 +41,7 @@ class IdentidadeFase0Test extends TestCase
                 'expires_in',
                 'usuario' => ['id', 'nome', 'email', 'perfil'],
                 'tenant' => ['id', 'slug', 'razao_social', 'subscription_status', 'trial_ends_at'],
+                'portal_url',
             ])
             ->assertJsonPath('usuario.perfil', 'admin_tenant')
             ->assertJsonPath('tenant.subscription_status', 'trial');
@@ -81,6 +82,78 @@ class IdentidadeFase0Test extends TestCase
 
         $response->assertUnprocessable()
             ->assertJsonPath('message', 'CNPJ já cadastrado.');
+    }
+
+    public function test_cadastro_rejeita_slug_reservado(): void
+    {
+        $response = $this->postJson('/api/v1/public/cadastro', [
+            'razao_social' => 'Empresa Nova Ltda',
+            'cnpj' => '11222333000181',
+            'slug' => 'cadastro',
+            'nome' => 'Maria Admin',
+            'email' => 'maria@empresa.local',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonPath('message', 'Este endereço não está disponível.');
+    }
+
+    public function test_slug_disponivel_retorna_true_para_slug_livre(): void
+    {
+        $response = $this->getJson('/api/v1/public/slug-disponivel?slug=minha-pme');
+
+        $response->assertOk()
+            ->assertJsonPath('disponivel', true)
+            ->assertJsonPath('slug', 'minha-pme')
+            ->assertJsonPath('sugestao', null);
+    }
+
+    public function test_slug_disponivel_retorna_false_para_slug_reservado(): void
+    {
+        $response = $this->getJson('/api/v1/public/slug-disponivel?slug=cadastro');
+
+        $response->assertOk()
+            ->assertJsonPath('disponivel', false)
+            ->assertJsonPath('slug', 'cadastro');
+    }
+
+    public function test_slug_disponivel_retorna_false_e_sugestao_para_slug_existente(): void
+    {
+        Tenant::query()->create([
+            'slug' => 'minha-pme',
+            'razao_social' => 'Minha PME Ltda',
+            'cnpj' => '04252011000110',
+            'status' => 'ativo',
+            'trial_starts_at' => Carbon::now(),
+            'trial_ends_at' => Carbon::now()->addDays(15),
+            'subscription_status' => 'trial',
+        ]);
+
+        $response = $this->getJson('/api/v1/public/slug-disponivel?slug=minha-pme');
+
+        $response->assertOk()
+            ->assertJsonPath('disponivel', false)
+            ->assertJsonPath('sugestao', 'minha-pme-2');
+    }
+
+    public function test_login_bloqueado_no_host_cadastro(): void
+    {
+        $this->seedTenantDemo();
+
+        $response = $this->postJson('/api/v1/auth/login', [
+            'email' => 'admin@clientex.local',
+            'password' => 'password',
+        ], [
+            'Origin' => 'http://portalfornecedor.cadastro.local:4200',
+        ]);
+
+        $response->assertNotFound()
+            ->assertJsonPath(
+                'message',
+                'Este endereço é para criar conta. Acesse o portal da sua empresa.'
+            );
     }
 
     public function test_login_emite_jwt_com_tenant_resolvido_por_header(): void

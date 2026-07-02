@@ -5,6 +5,7 @@ namespace App\Modules\Identidade\Infrastructure\Tenant;
 use App\Models\Tenant;
 use App\Modules\Identidade\Application\Port\Out\TenantRepositoryPort;
 use App\Modules\Identidade\Domain\Exceptions\TenantNaoEncontradoException;
+use App\Modules\Identidade\Domain\Policies\ReservedSlugPolicy;
 use Illuminate\Http\Request;
 
 final class TenantHostResolver
@@ -19,6 +20,12 @@ final class TenantHostResolver
 
         if ($slug === null) {
             throw new TenantNaoEncontradoException;
+        }
+
+        if (ReservedSlugPolicy::isReserved($slug)) {
+            throw new TenantNaoEncontradoException(
+                'Este endereço é para criar conta. Acesse o portal da sua empresa.'
+            );
         }
 
         $tenant = $this->tenantRepository->findBySlug($slug);

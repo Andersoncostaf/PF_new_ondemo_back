@@ -27,6 +27,10 @@ use App\Modules\Contratacao\Application\UseCase\RemoverContratacaoAnexoUseCase;
 
 use App\Modules\Contratacao\Application\UseCase\SubmeterContratacaoUseCase;
 
+use App\Modules\Contratacao\Application\Service\ContratacaoAprovacaoService;
+
+use App\Modules\Contratacao\Domain\Exceptions\ContratacaoDomainException;
+
 use App\Modules\Contratacao\Interface\Http\Requests\StoreContratacaoAnexoRequest;
 
 use App\Modules\Contratacao\Interface\Http\Requests\StoreContratacaoRequest;
@@ -58,6 +62,8 @@ class ContratacaoController extends Controller
         private AdicionarContratacaoAnexoUseCase $adicionarAnexoUseCase,
 
         private RemoverContratacaoAnexoUseCase $removerAnexoUseCase,
+
+        private ContratacaoAprovacaoService $aprovacaoService,
 
     ) {}
 
@@ -217,5 +223,53 @@ class ContratacaoController extends Controller
 
     }
 
+    public function listarApontamentos(Request $request, string $uuid): JsonResponse
+    {
+        /** @var UsuarioCliente $usuario */
+        $usuario = $request->attributes->get('usuario_cliente');
+
+        try {
+            return response()->json([
+                'data' => $this->aprovacaoService->listarApontamentos(
+                    $usuario,
+                    $uuid,
+                    $request->query('etapa'),
+                ),
+            ]);
+        } catch (ContratacaoDomainException $e) {
+            return response()->json($e->payload(), $e->statusCode());
+        }
+    }
+
+    public function responderApontamento(Request $request, string $uuid, string $apontamentoId): JsonResponse
+    {
+        /** @var UsuarioCliente $usuario */
+        $usuario = $request->attributes->get('usuario_cliente');
+
+        try {
+            $data = $this->aprovacaoService->responderApontamento(
+                $usuario,
+                $uuid,
+                $apontamentoId,
+                (string) $request->input('resposta', ''),
+            );
+
+            return response()->json($data);
+        } catch (ContratacaoDomainException $e) {
+            return response()->json($e->payload(), $e->statusCode());
+        }
+    }
+
+    public function reenviar(Request $request, string $uuid): JsonResponse
+    {
+        /** @var UsuarioCliente $usuario */
+        $usuario = $request->attributes->get('usuario_cliente');
+
+        try {
+            return response()->json($this->aprovacaoService->reenviar($usuario, $uuid));
+        } catch (ContratacaoDomainException $e) {
+            return response()->json($e->payload(), $e->statusCode());
+        }
+    }
 }
 

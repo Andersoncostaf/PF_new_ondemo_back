@@ -54,7 +54,7 @@ final class ContratacaoOutput
      */
     public static function listItem(Contratacao $contratacao): array
     {
-        $contratacao->loadMissing(['criadoPor']);
+        $contratacao->loadMissing(['criadoPor', 'analista']);
 
         return [
             'uuid' => $contratacao->uuid,
@@ -69,9 +69,10 @@ final class ContratacaoOutput
             'created_at' => $contratacao->created_at?->toIso8601String(),
             'updated_at' => $contratacao->updated_at?->toIso8601String(),
             'fornecedor_vencedor' => null,
-            'data_inicio_analise' => null,
-            'responsavel_analise' => null,
-            'apontamentos_pendentes' => null,
+            'data_inicio_analise' => $contratacao->analise_iniciada_em?->toIso8601String(),
+            'responsavel_analise' => $contratacao->analista?->nome,
+            'apontamentos_pendentes' => $contratacao->apontamentos_pendentes_count
+                ?? $contratacao->apontamentos()->where('status', 'pendente')->count(),
         ];
     }
 

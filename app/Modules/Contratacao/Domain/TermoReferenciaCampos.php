@@ -35,12 +35,39 @@ final class TermoReferenciaCampos
         }
 
         foreach (self::KEYS as $key) {
-            if (blank($campos[$key] ?? null)) {
+            if (! self::fieldHasContent($campos[$key] ?? null)) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    private static function normalizeFieldValue(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $trimmed = trim($value);
+        $plain = trim(preg_replace('/\s+/u', ' ', strip_tags(str_replace('&nbsp;', ' ', $trimmed)) ?? ''));
+
+        if ($plain === '') {
+            return '';
+        }
+
+        return $trimmed;
+    }
+
+    private static function fieldHasContent(mixed $value): bool
+    {
+        if ($value === null) {
+            return false;
+        }
+
+        $normalized = self::normalizeFieldValue((string) $value);
+
+        return $normalized !== null && $normalized !== '';
     }
 
     /**
@@ -53,7 +80,7 @@ final class TermoReferenciaCampos
         $missing = [];
 
         foreach (self::KEYS as $key) {
-            if ($campos === null || blank($campos[$key] ?? null)) {
+            if ($campos === null || ! self::fieldHasContent($campos[$key] ?? null)) {
                 $missing[] = $key;
             }
         }
@@ -119,7 +146,7 @@ final class TermoReferenciaCampos
             }
 
             $value = $data[$key];
-            $normalized[$key] = $value !== null ? trim((string) $value) : null;
+            $normalized[$key] = self::normalizeFieldValue($value !== null ? (string) $value : null);
         }
 
         if (array_key_exists(self::CUSTOM_KEY, $data) && is_array($data[self::CUSTOM_KEY])) {
@@ -148,7 +175,7 @@ final class TermoReferenciaCampos
             }
 
             $titulo = trim((string) ($item['titulo'] ?? ''));
-            $conteudo = trim((string) ($item['conteudo'] ?? ''));
+            $conteudo = self::normalizeFieldValue(isset($item['conteudo']) ? (string) $item['conteudo'] : null) ?? '';
 
             if ($titulo === '' && $conteudo === '') {
                 continue;

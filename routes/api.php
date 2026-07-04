@@ -44,6 +44,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/', [ContratacaoController::class, 'store']);
             Route::get('/{uuid}', [ContratacaoController::class, 'show']);
             Route::patch('/{uuid}', [ContratacaoController::class, 'update']);
+            Route::delete('/{uuid}', [ContratacaoController::class, 'destroy']);
             Route::post('/{uuid}/submeter', [ContratacaoController::class, 'submeter']);
             Route::post('/{uuid}/anexos', [ContratacaoController::class, 'storeAnexo']);
             Route::delete('/{uuid}/anexos/{anexoId}', [ContratacaoController::class, 'destroyAnexo']);

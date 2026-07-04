@@ -116,6 +116,25 @@ final class EloquentContratacaoRepository implements ContratacaoRepositoryPort
         return $contratacao->fresh(['qqpItens', 'anexos']);
     }
 
+    public function deleteRascunho(Contratacao $contratacao): void
+    {
+        $contratacao->load(['anexos', 'apontamentos']);
+
+        foreach ($contratacao->anexos as $anexo) {
+            if ($anexo->storage_path) {
+                $this->storage->delete($anexo->storage_path);
+            }
+        }
+
+        foreach ($contratacao->apontamentos as $apontamento) {
+            if ($apontamento->storage_path) {
+                $this->storage->delete($apontamento->storage_path);
+            }
+        }
+
+        $contratacao->delete();
+    }
+
     public function submeter(Contratacao $contratacao): Contratacao
     {
         $contratacao->status = ContratacaoStatus::AGUARDANDO_ANALISE_COMPRAS;

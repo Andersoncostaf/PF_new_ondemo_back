@@ -19,6 +19,8 @@ use App\Modules\Contratacao\Application\UseCase\AtualizarContratacaoRascunhoUseC
 
 use App\Modules\Contratacao\Application\UseCase\CriarContratacaoRascunhoUseCase;
 
+use App\Modules\Contratacao\Application\UseCase\ExcluirContratacaoRascunhoUseCase;
+
 use App\Modules\Contratacao\Application\UseCase\ListarContratacoesTenantUseCase;
 
 use App\Modules\Contratacao\Application\UseCase\ObterContratacaoUseCase;
@@ -56,6 +58,8 @@ class ContratacaoController extends Controller
         private ObterContratacaoUseCase $obterUseCase,
 
         private AtualizarContratacaoRascunhoUseCase $atualizarUseCase,
+
+        private ExcluirContratacaoRascunhoUseCase $excluirUseCase,
 
         private SubmeterContratacaoUseCase $submeterUseCase,
 
@@ -154,6 +158,26 @@ class ContratacaoController extends Controller
             )
 
         );
+
+    }
+
+
+
+    public function destroy(Request $request, string $uuid): JsonResponse
+
+    {
+
+        /** @var UsuarioCliente $usuario */
+
+        $usuario = $request->attributes->get('usuario_cliente');
+
+
+
+        $this->excluirUseCase->executar($usuario, $uuid);
+
+
+
+        return response()->json(null, 204);
 
     }
 

@@ -51,6 +51,24 @@ final class ContratacaoAprovacaoService
     /**
      * @return array<string, mixed>
      */
+    public function listarFila(UsuarioCliente $usuario, ContratacaoListFilter $filter): array
+    {
+        $paginator = $this->repository->listFilaCompras($usuario->tenant_id, $filter);
+
+        return [
+            'data' => collect($paginator->items())->map(fn (Contratacao $c) => ContratacaoOutput::listItem($c))->values()->all(),
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     public function assumirAnalise(UsuarioCliente $usuario, string $uuid): array
     {
         $contratacao = $this->loadOrFail($uuid, $usuario->tenant_id);

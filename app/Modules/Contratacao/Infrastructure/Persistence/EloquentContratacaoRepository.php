@@ -149,14 +149,27 @@ final class EloquentContratacaoRepository implements ContratacaoRepositoryPort
 
     public function listPendentesAprovacao(string $tenantId, ContratacaoListFilter $filter): LengthAwarePaginator
     {
+        return $this->listFilaComprasQuery($tenantId, $filter, [
+            ContratacaoStatus::AGUARDANDO_ANALISE_COMPRAS,
+            ContratacaoStatus::EM_ANALISE,
+        ]);
+    }
+
+    public function listFilaCompras(string $tenantId, ContratacaoListFilter $filter): LengthAwarePaginator
+    {
+        return $this->listFilaComprasQuery($tenantId, $filter, ContratacaoStatus::FILA_COMPRAS);
+    }
+
+    /**
+     * @param list<string> $statuses
+     */
+    private function listFilaComprasQuery(string $tenantId, ContratacaoListFilter $filter, array $statuses): LengthAwarePaginator
+    {
         $query = Contratacao::query()
             ->with(['criadoPor', 'analista'])
             ->withCount(['apontamentos as apontamentos_pendentes_count' => fn ($q) => $q->where('status', 'pendente')])
             ->where('tenant_id', $tenantId)
-            ->whereIn('status', [
-                ContratacaoStatus::AGUARDANDO_ANALISE_COMPRAS,
-                ContratacaoStatus::EM_ANALISE,
-            ]);
+            ->whereIn('status', $statuses);
 
         if ($filter->dataInicio !== null) {
             $query->whereDate('created_at', '>=', $filter->dataInicio);
@@ -205,7 +218,7 @@ final class EloquentContratacaoRepository implements ContratacaoRepositoryPort
 
     public function aprovarAnalise(Contratacao $contratacao): Contratacao
     {
-        $contratacao->status = ContratacaoStatus::APROVADO_COMPRAS;
+        $contratacao->status = ContratacaoStatus::EM_VENDOR_LIST;
         $contratacao->save();
 
         return $contratacao->fresh(['qqpItens', 'anexos', 'analista', 'criadoPor']);

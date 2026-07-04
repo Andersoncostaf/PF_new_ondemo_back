@@ -3,6 +3,7 @@
 use App\Http\Controllers\HealthController;
 use App\Modules\Contratacao\Interface\Http\ContratacaoAprovacaoController;
 use App\Modules\Contratacao\Interface\Http\ContratacaoController;
+use App\Modules\Contratacao\Interface\Http\ContratacaoVendorListController;
 use App\Modules\Identidade\Interface\Http\AdminUsuariosController;
 use App\Modules\Identidade\Interface\Http\AuthController;
 use App\Modules\Identidade\Interface\Http\CadastroController;
@@ -55,6 +56,7 @@ Route::prefix('v1')->group(function () {
 
         Route::middleware('contratacao.aprovacao')->prefix('contratacao/aprovacao')->group(function () {
             Route::get('/pendentes', [ContratacaoAprovacaoController::class, 'pendentes']);
+            Route::get('/fila', [ContratacaoAprovacaoController::class, 'fila']);
             Route::post('/{uuid}/assumir', [ContratacaoAprovacaoController::class, 'assumir']);
             Route::get('/{uuid}', [ContratacaoAprovacaoController::class, 'show']);
             Route::get('/{uuid}/apontamentos', [ContratacaoAprovacaoController::class, 'listarApontamentos']);
@@ -63,6 +65,13 @@ Route::prefix('v1')->group(function () {
             Route::get('/{uuid}/apontamentos/{apontamentoId}/anexo', [ContratacaoAprovacaoController::class, 'baixarAnexoApontamento']);
             Route::post('/{uuid}/retornar-ajustes', [ContratacaoAprovacaoController::class, 'retornarAjustes']);
             Route::post('/{uuid}/aprovar-analise', [ContratacaoAprovacaoController::class, 'aprovarAnalise']);
+        });
+
+        Route::middleware('contratacao.aprovacao')->prefix('contratacao/vendor-list')->group(function () {
+            Route::get('/{uuid}', [ContratacaoVendorListController::class, 'show']);
+            Route::get('/{uuid}/fornecedores', [ContratacaoVendorListController::class, 'listarFornecedores']);
+            Route::post('/{uuid}/fornecedores', [ContratacaoVendorListController::class, 'cadastrarFornecedor']);
+            Route::delete('/{uuid}/fornecedores/{fornecedorUuid}', [ContratacaoVendorListController::class, 'removerFornecedor']);
         });
     });
 });

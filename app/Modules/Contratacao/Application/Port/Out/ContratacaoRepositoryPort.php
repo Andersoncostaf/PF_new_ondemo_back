@@ -54,6 +54,10 @@ interface ContratacaoRepositoryPort
 
 
 
+    public function listFilaCompras(string $tenantId, ContratacaoListFilter $filter): LengthAwarePaginator;
+
+
+
     public function assumirAnalise(Contratacao $contratacao, string $analistaUsuarioId): Contratacao;
 
 

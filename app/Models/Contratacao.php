@@ -79,4 +79,9 @@ class Contratacao extends Model
     {
         return $this->hasMany(ContratacaoApontamento::class, 'contratacao_id')->orderBy('created_at');
     }
+
+    public function fornecedores(): HasMany
+    {
+        return $this->hasMany(ContratacaoFornecedor::class, 'contratacao_id')->orderBy('created_at');
+    }
 }

@@ -23,4 +23,18 @@ class StoreContratacaoAnexoRequest extends FormRequest
             'arquivo' => ['required', 'file', 'max:'.$maxKb],
         ];
     }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        $maxMb = (int) config('contratacao.anexos_max_kb', 10240) / 1024;
+
+        return [
+            'arquivo.required' => 'Selecione um arquivo para anexar.',
+            'arquivo.file' => 'O anexo deve ser um arquivo válido.',
+            'arquivo.max' => "O arquivo excede o limite de {$maxMb} MB.",
+        ];
+    }
 }

@@ -17,9 +17,14 @@ final class ContratacaoStatus
     public const EM_VENDOR_LIST = 'em_vendor_list';
 
     /** @var list<string> */
-    public const FILA_COMPRAS = [
+    public const FILA_APROVACAO = [
         self::AGUARDANDO_ANALISE_COMPRAS,
         self::EM_ANALISE,
+    ];
+
+    /** @var list<string> */
+    public const FILA_COMPRAS = [
+        self::APROVADO_COMPRAS,
         self::EM_VENDOR_LIST,
     ];
 

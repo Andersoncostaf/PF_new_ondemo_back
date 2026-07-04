@@ -32,20 +32,6 @@ class ContratacaoAprovacaoController extends Controller
         }
     }
 
-    public function fila(Request $request): JsonResponse
-    {
-        /** @var UsuarioCliente $usuario */
-        $usuario = $request->attributes->get('usuario_cliente');
-
-        try {
-            return response()->json(
-                $this->aprovacaoService->listarFila($usuario, ContratacaoListFilter::fromRequest($request))
-            );
-        } catch (ContratacaoDomainException $e) {
-            return response()->json($e->payload(), $e->statusCode());
-        }
-    }
-
     public function assumir(Request $request, string $uuid): JsonResponse
     {
         /** @var UsuarioCliente $usuario */

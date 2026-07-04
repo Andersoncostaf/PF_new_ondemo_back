@@ -5,6 +5,7 @@ namespace Tests\Unit\Contratacao;
 use App\Models\Contratacao;
 use App\Models\UsuarioCliente;
 use App\Modules\Contratacao\Domain\ContratacaoStatus;
+use App\Modules\Contratacao\Domain\Policies\ContratacaoElegivelParaAssumirVendorList;
 use App\Modules\Contratacao\Domain\Policies\ContratacaoElegivelParaVendorList;
 use App\Modules\Contratacao\Domain\Policies\FornecedorCnpjUnicoNaContratacao;
 use App\Modules\Contratacao\Domain\Policies\UsuarioPodeEditarVendorList;
@@ -19,6 +20,15 @@ class ContratacaoVendorListPoliciesTest extends TestCase
 
         $contratacao->status = ContratacaoStatus::EM_ANALISE;
         $this->assertFalse(ContratacaoElegivelParaVendorList::check($contratacao));
+    }
+
+    public function test_contratacao_elegivel_para_assumir_vendor_list(): void
+    {
+        $contratacao = new Contratacao(['status' => ContratacaoStatus::APROVADO_COMPRAS]);
+        $this->assertTrue(ContratacaoElegivelParaAssumirVendorList::check($contratacao));
+
+        $contratacao->status = ContratacaoStatus::EM_VENDOR_LIST;
+        $this->assertFalse(ContratacaoElegivelParaAssumirVendorList::check($contratacao));
     }
 
     public function test_fornecedor_cnpj_unico_na_contratacao(): void

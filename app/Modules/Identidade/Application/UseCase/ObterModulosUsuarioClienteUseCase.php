@@ -7,6 +7,7 @@ use App\Modules\Identidade\Application\DTO\ModuloItem;
 use App\Modules\Identidade\Domain\Policies\UsuarioClienteComTenantElegivel;
 use App\Modules\Identidade\Domain\Policies\UsuarioClienteEAdminTenant;
 use App\Modules\Identidade\Domain\Policies\UsuarioClienteElegivelParaContratacaoAprovacao;
+use App\Modules\Identidade\Domain\Policies\UsuarioClienteElegivelParaContratacaoCompras;
 use App\Modules\Identidade\Domain\Policies\UsuarioClienteElegivelParaContratacaoWizard;
 
 final class ObterModulosUsuarioClienteUseCase
@@ -36,6 +37,15 @@ final class ObterModulosUsuarioClienteUseCase
                 codigo: 'contratacao_aprovacao',
                 label: 'Aprovar solicitações',
                 rota: '/contratacao/aprovacao',
+                grupo: 'Compras',
+            );
+        }
+
+        if (UsuarioClienteElegivelParaContratacaoCompras::check($usuario)) {
+            $modulos[] = new ModuloItem(
+                codigo: 'contratacao_compras',
+                label: 'Compras',
+                rota: '/contratacao/compras',
                 grupo: 'Compras',
             );
         }

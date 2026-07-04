@@ -74,6 +74,10 @@ interface ContratacaoRepositoryPort
 
 
 
+    public function assumirVendorList(Contratacao $contratacao, string $compradorUsuarioId): Contratacao;
+
+
+
     public function reenviarAposAjustes(Contratacao $contratacao): Contratacao;
 
 

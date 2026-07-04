@@ -69,6 +69,7 @@ class Kernel extends HttpKernel
         'contratacao.access' => \App\Http\Middleware\EnsureContratacaoAccess::class,
         'contratacao.wizard' => \App\Http\Middleware\EnsureContratacaoWizardAccess::class,
         'contratacao.aprovacao' => \App\Http\Middleware\EnsureContratacaoAprovacaoAccess::class,
+        'contratacao.compras' => \App\Http\Middleware\EnsureContratacaoComprasAccess::class,
         'identidade.admin_tenant' => \App\Http\Middleware\EnsureAdminTenantAccess::class,
     ];
 }

@@ -4,7 +4,7 @@ namespace App\Modules\Identidade\Domain\Policies;
 
 use App\Models\UsuarioCliente;
 
-final class UsuarioClienteElegivelParaContratacaoAprovacao
+final class UsuarioClienteElegivelParaContratacaoCompras
 {
     public static function check(UsuarioCliente $usuario): bool
     {
@@ -12,6 +12,6 @@ final class UsuarioClienteElegivelParaContratacaoAprovacao
             return false;
         }
 
-        return in_array($usuario->perfil, ['gestor', 'admin_tenant'], true);
+        return in_array($usuario->perfil, ['compras', 'admin_tenant'], true);
     }
 }

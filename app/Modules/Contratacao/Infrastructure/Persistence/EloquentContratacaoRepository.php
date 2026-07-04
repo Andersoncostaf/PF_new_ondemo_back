@@ -149,10 +149,7 @@ final class EloquentContratacaoRepository implements ContratacaoRepositoryPort
 
     public function listPendentesAprovacao(string $tenantId, ContratacaoListFilter $filter): LengthAwarePaginator
     {
-        return $this->listFilaComprasQuery($tenantId, $filter, [
-            ContratacaoStatus::AGUARDANDO_ANALISE_COMPRAS,
-            ContratacaoStatus::EM_ANALISE,
-        ]);
+        return $this->listFilaComprasQuery($tenantId, $filter, ContratacaoStatus::FILA_APROVACAO);
     }
 
     public function listFilaCompras(string $tenantId, ContratacaoListFilter $filter): LengthAwarePaginator
@@ -218,7 +215,16 @@ final class EloquentContratacaoRepository implements ContratacaoRepositoryPort
 
     public function aprovarAnalise(Contratacao $contratacao): Contratacao
     {
+        $contratacao->status = ContratacaoStatus::APROVADO_COMPRAS;
+        $contratacao->save();
+
+        return $contratacao->fresh(['qqpItens', 'anexos', 'analista', 'criadoPor']);
+    }
+
+    public function assumirVendorList(Contratacao $contratacao, string $compradorUsuarioId): Contratacao
+    {
         $contratacao->status = ContratacaoStatus::EM_VENDOR_LIST;
+        $contratacao->analista_usuario_id = $compradorUsuarioId;
         $contratacao->save();
 
         return $contratacao->fresh(['qqpItens', 'anexos', 'analista', 'criadoPor']);

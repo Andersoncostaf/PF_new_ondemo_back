@@ -51,12 +51,11 @@ final class ContratacaoInput
         }
 
         $solicitacaoServico = null;
-        $solicitacaoServicoTouched = array_key_exists('solicitacao_servico', $data);
+        $solicitacaoServicoTouched = array_key_exists('solicitacao_servico', $data)
+            && $data['solicitacao_servico'] !== null;
 
-        if ($solicitacaoServicoTouched) {
-            $solicitacaoServico = is_array($data['solicitacao_servico'])
-                ? SolicitacaoServicoCampos::normalize($data['solicitacao_servico'])
-                : null;
+        if ($solicitacaoServicoTouched && is_array($data['solicitacao_servico'])) {
+            $solicitacaoServico = SolicitacaoServicoCampos::normalize($data['solicitacao_servico']);
         }
 
         return new self(

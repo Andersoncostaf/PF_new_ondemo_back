@@ -93,13 +93,17 @@ final class EloquentContratacaoRepository implements ContratacaoRepositoryPort
             $attributes['departamento'] = $input->departamento !== '' ? $input->departamento : null;
         }
 
-        if ($input->solicitacaoServicoTouched) {
+        if ($input->solicitacaoServicoTouched && $input->solicitacaoServico !== null) {
             $attributes['solicitacao_servico'] = $input->solicitacaoServico;
         }
 
         if ($input->termoReferenciaCampos !== null) {
-            $attributes['termo_referencia_campos'] = $input->termoReferenciaCampos;
-            $attributes['termo_referencia'] = TermoReferenciaCampos::toText($input->termoReferenciaCampos);
+            $mergedCampos = array_merge(
+                is_array($contratacao->termo_referencia_campos) ? $contratacao->termo_referencia_campos : [],
+                $input->termoReferenciaCampos,
+            );
+            $attributes['termo_referencia_campos'] = $mergedCampos;
+            $attributes['termo_referencia'] = TermoReferenciaCampos::toText($mergedCampos);
         } elseif ($input->termoReferencia !== null) {
             $attributes['termo_referencia'] = $input->termoReferencia;
         }

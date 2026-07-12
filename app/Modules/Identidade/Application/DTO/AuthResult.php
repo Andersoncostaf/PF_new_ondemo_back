@@ -30,6 +30,7 @@ final class AuthResult
                 'email' => $this->usuario->email,
                 'perfil' => $this->usuario->perfil,
                 'cargo' => $this->usuario->cargo,
+                'preferencias' => $this->usuario->preferencias,
             ],
             'tenant' => [
                 'id' => $this->tenant->id,

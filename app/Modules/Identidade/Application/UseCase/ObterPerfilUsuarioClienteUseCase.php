@@ -21,6 +21,7 @@ final class ObterPerfilUsuarioClienteUseCase
                 'perfil' => $usuario->perfil,
                 'cargo' => $usuario->cargo,
                 'status' => $usuario->status,
+                'preferencias' => $usuario->preferencias,
             ],
             'tenant' => [
                 'id' => $tenant->id,

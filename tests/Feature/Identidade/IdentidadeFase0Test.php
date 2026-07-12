@@ -4,8 +4,10 @@ namespace Tests\Feature\Identidade;
 
 use App\Models\Tenant;
 use App\Models\UsuarioCliente;
+use App\Modules\Identidade\Infrastructure\Mail\TenantBoasVindasMailable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class IdentidadeFase0Test extends TestCase
@@ -19,7 +21,32 @@ class IdentidadeFase0Test extends TestCase
         config([
             'identidade.jwt.secret' => 'test-jwt-secret-key-for-fase0',
             'identidade.jwt.ttl' => 3600,
+            'identidade.welcome_mail.enabled' => true,
+            'identidade.frontend_tenant_url_template' => 'http://portalfornecedor.{slug}.local:4200',
         ]);
+    }
+
+    public function test_cadastro_envia_email_de_boas_vindas(): void
+    {
+        Mail::fake();
+
+        $this->postJson('/api/v1/public/cadastro', [
+            'razao_social' => 'Empresa E-mail Ltda',
+            'cnpj' => '11222333000181',
+            'slug' => 'empresa-email',
+            'nome' => 'Carlos Admin',
+            'email' => 'carlos@empresa.local',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ])->assertCreated();
+
+        Mail::assertSent(TenantBoasVindasMailable::class, function (TenantBoasVindasMailable $mail): bool {
+            return $mail->hasTo('carlos@empresa.local')
+                && $mail->payload->nomeAdmin === 'Carlos Admin'
+                && $mail->payload->razaoSocial === 'Empresa E-mail Ltda'
+                && $mail->payload->portalUrl === 'http://portalfornecedor.empresa-email.local:4200'
+                && $mail->payload->loginUrl === 'http://portalfornecedor.empresa-email.local:4200/auth/login';
+        });
     }
 
     public function test_cadastro_cria_tenant_usuario_e_retorna_jwt(): void
@@ -200,7 +227,85 @@ class IdentidadeFase0Test extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('usuario.email', 'admin@clientex.local')
-            ->assertJsonPath('tenant.slug', 'clientex');
+            ->assertJsonPath('tenant.slug', 'clientex')
+            ->assertJsonPath('usuario.preferencias', null);
+    }
+
+    public function test_login_inclui_preferencias_no_usuario(): void
+    {
+        $tenant = $this->seedTenantDemo();
+
+        UsuarioCliente::query()
+            ->where('email', 'admin@clientex.local')
+            ->update(['preferencias' => ['theme' => 'dark']]);
+
+        $response = $this->postJson('/api/v1/auth/login', [
+            'email' => 'admin@clientex.local',
+            'password' => 'password',
+        ], [
+            'X-Tenant-Slug' => $tenant->slug,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('usuario.preferencias.theme', 'dark');
+    }
+
+    public function test_patch_me_preferencias_persiste_theme(): void
+    {
+        $tenant = $this->seedTenantDemo();
+        $token = $this->loginToken($tenant, 'admin@clientex.local', 'password');
+
+        $response = $this->patchJson('/api/v1/me/preferencias', [
+            'theme' => 'dark',
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('preferencias.theme', 'dark');
+
+        $this->assertDatabaseHas('usuarios_cliente', [
+            'email' => 'admin@clientex.local',
+        ]);
+
+        $usuario = UsuarioCliente::query()->where('email', 'admin@clientex.local')->first();
+        $this->assertSame(['theme' => 'dark'], $usuario->preferencias);
+
+        $this->getJson('/api/v1/me', [
+            'Authorization' => "Bearer {$token}",
+        ])->assertOk()
+            ->assertJsonPath('usuario.preferencias.theme', 'dark');
+    }
+
+    public function test_patch_me_preferencias_rejeita_theme_invalido(): void
+    {
+        $tenant = $this->seedTenantDemo();
+        $token = $this->loginToken($tenant, 'admin@clientex.local', 'password');
+
+        $this->patchJson('/api/v1/me/preferencias', [
+            'theme' => 'neon',
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ])->assertUnprocessable();
+    }
+
+    public function test_patch_me_preferencias_faz_merge_sem_apagar_outras_chaves(): void
+    {
+        $tenant = $this->seedTenantDemo();
+
+        UsuarioCliente::query()
+            ->where('email', 'admin@clientex.local')
+            ->update(['preferencias' => ['locale' => 'pt-BR', 'theme' => 'light']]);
+
+        $token = $this->loginToken($tenant, 'admin@clientex.local', 'password');
+
+        $this->patchJson('/api/v1/me/preferencias', [
+            'theme' => 'system',
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ])->assertOk()
+            ->assertJsonPath('preferencias.theme', 'system')
+            ->assertJsonPath('preferencias.locale', 'pt-BR');
     }
 
     public function test_me_modulos_inclui_contratacao_para_admin_tenant_em_trial(): void

@@ -31,6 +31,7 @@ Route::prefix('v1')->group(function () {
 
     Route::middleware('jwt.auth')->group(function () {
         Route::get('/me', [MeController::class, 'show']);
+        Route::patch('/me/preferencias', [MeController::class, 'updatePreferencias']);
         Route::get('/me/modulos', [MeController::class, 'modulos']);
         Route::get('/filiais', [FiliaisController::class, 'index']);
 

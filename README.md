@@ -68,4 +68,14 @@ php artisan migrate --force
 
 Specs em `meta_specs/` no monorepo `Portal_Fornecedor_new-ondemo`.
 
+### Swagger UI (OpenAPI 3)
+
+| Ambiente | URL |
+|----------|-----|
+| Local Docker | http://api.portalfornecedor.local/docs |
+| Local `artisan serve` | http://api.portalfornecedor.local:8000/docs |
+| Homolog | https://api.homolog.portalfornecedor.com.br/docs |
+
+Spec em `public/docs/openapi.yaml`. Use **Authorize** com `Bearer {token}` para rotas autenticadas; em login, informe `X-Tenant-Slug` (ex.: `clientex`) se não estiver no host multi-tenant.
+
 Config Supabase de referência: `../env/laravel.config/database.pgsql.supabase.snippet.php`

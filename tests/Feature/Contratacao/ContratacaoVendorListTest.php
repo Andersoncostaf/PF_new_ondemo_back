@@ -97,12 +97,15 @@ class ContratacaoVendorListTest extends TestCase
             'cnpj' => '04252011000110',
             'razao_social' => 'Fornecedor Teste Ltda',
             'telefone' => '91999999999',
+            'vendedor' => 'Maria Comercial',
         ], [
             'Authorization' => "Bearer {$token}",
         ]);
 
         $create->assertCreated()
-            ->assertJsonPath('razao_social', 'Fornecedor Teste Ltda');
+            ->assertJsonPath('razao_social', 'Fornecedor Teste Ltda')
+            ->assertJsonPath('vendedor', 'Maria Comercial')
+            ->assertJsonPath('aceite', false);
 
         $fornecedorUuid = (string) $create->json('uuid');
 
@@ -118,6 +121,22 @@ class ContratacaoVendorListTest extends TestCase
         $list->assertOk()
             ->assertJsonPath('data.0.uuid', $fornecedorUuid);
 
+        $aceite = $this->postJson(
+            "/api/v1/contratacao/compras/vendor-list/{$contratacao->uuid}/fornecedores/{$fornecedorUuid}/aceite",
+            [],
+            ['Authorization' => "Bearer {$token}"],
+        );
+
+        $aceite->assertOk()
+            ->assertJsonPath('aceite', true)
+            ->assertJsonPath('status_participacao', 'aceito');
+
+        $this->assertDatabaseHas('contratacao_fornecedores', [
+            'uuid' => $fornecedorUuid,
+            'aceite' => true,
+            'status_participacao' => 'aceito',
+        ]);
+
         $this->deleteJson("/api/v1/contratacao/compras/vendor-list/{$contratacao->uuid}/fornecedores/{$fornecedorUuid}", [], [
             'Authorization' => "Bearer {$token}",
         ])->assertOk();
@@ -125,6 +144,20 @@ class ContratacaoVendorListTest extends TestCase
         $this->assertDatabaseMissing('contratacao_fornecedores', [
             'uuid' => $fornecedorUuid,
         ]);
+    }
+
+    public function test_exige_vendedor_ao_cadastrar_fornecedor(): void
+    {
+        [$tenant, $contratacao, $token] = $this->seedContratacaoEmAnalise();
+        $contratacao->status = ContratacaoStatus::EM_VENDOR_LIST;
+        $contratacao->save();
+
+        $this->postJson("/api/v1/contratacao/compras/vendor-list/{$contratacao->uuid}/fornecedores", [
+            'cnpj' => '04252011000110',
+            'razao_social' => 'Sem Vendedor Ltda',
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ])->assertUnprocessable();
     }
 
     public function test_bloqueia_cnpj_duplicado_na_contratacao(): void
@@ -136,6 +169,7 @@ class ContratacaoVendorListTest extends TestCase
         $payload = [
             'cnpj' => '04252011000110',
             'razao_social' => 'Fornecedor A',
+            'vendedor' => 'João Vendas',
         ];
 
         $this->postJson("/api/v1/contratacao/compras/vendor-list/{$contratacao->uuid}/fornecedores", $payload, [

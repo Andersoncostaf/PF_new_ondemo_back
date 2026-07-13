@@ -22,5 +22,7 @@ interface ContratacaoFornecedorRepositoryPort
      */
     public function create(Contratacao $contratacao, string $tenantId, array $attributes): ContratacaoFornecedor;
 
+    public function marcarAceiteParticipacao(ContratacaoFornecedor $fornecedor): ContratacaoFornecedor;
+
     public function delete(ContratacaoFornecedor $fornecedor): void;
 }

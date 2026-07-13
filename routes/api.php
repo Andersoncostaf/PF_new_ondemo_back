@@ -77,7 +77,10 @@ Route::prefix('v1')->group(function () {
         Route::middleware('contratacao.compras')->prefix('contratacao/compras/vendor-list')->group(function () {
             Route::get('/{uuid}', [ContratacaoVendorListController::class, 'show']);
             Route::get('/{uuid}/fornecedores', [ContratacaoVendorListController::class, 'listarFornecedores']);
+            Route::get('/{uuid}/fornecedores/buscar', [ContratacaoVendorListController::class, 'buscarFornecedorPorCnpj']);
             Route::post('/{uuid}/fornecedores', [ContratacaoVendorListController::class, 'cadastrarFornecedor']);
+            Route::post('/{uuid}/fornecedores/{fornecedorUuid}/aceite', [ContratacaoVendorListController::class, 'registrarAceite']);
+            Route::post('/{uuid}/sugestoes-fornecedores', [ContratacaoVendorListController::class, 'gerarSugestoesFornecedores']);
             Route::delete('/{uuid}/fornecedores/{fornecedorUuid}', [ContratacaoVendorListController::class, 'removerFornecedor']);
         });
     });

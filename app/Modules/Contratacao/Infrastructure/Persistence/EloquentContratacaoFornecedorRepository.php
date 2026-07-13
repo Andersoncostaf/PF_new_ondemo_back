@@ -48,6 +48,15 @@ final class EloquentContratacaoFornecedorRepository implements ContratacaoFornec
         ]);
     }
 
+    public function marcarAceiteParticipacao(ContratacaoFornecedor $fornecedor): ContratacaoFornecedor
+    {
+        $fornecedor->aceite = true;
+        $fornecedor->status_participacao = 'aceito';
+        $fornecedor->save();
+
+        return $fornecedor->fresh() ?? $fornecedor;
+    }
+
     public function delete(ContratacaoFornecedor $fornecedor): void
     {
         $fornecedor->delete();

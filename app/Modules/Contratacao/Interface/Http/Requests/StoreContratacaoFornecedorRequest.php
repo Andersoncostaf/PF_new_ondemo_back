@@ -26,7 +26,7 @@ class StoreContratacaoFornecedorRequest extends FormRequest
             'razao_social' => ['required', 'string', 'max:255'],
             'telefone' => ['nullable', 'string', 'max:32'],
             'email' => ['nullable', 'email', 'max:255'],
-            'vendedor' => ['nullable', 'string', 'max:255'],
+            'vendedor' => ['required', 'string', 'max:255'],
         ];
     }
 }

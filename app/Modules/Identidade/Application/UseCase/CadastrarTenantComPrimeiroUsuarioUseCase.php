@@ -6,13 +6,18 @@ use App\Models\Tenant;
 use App\Models\UsuarioCliente;
 use App\Modules\Identidade\Application\DTO\AuthResult;
 use App\Modules\Identidade\Application\DTO\CadastroInput;
+use App\Modules\Identidade\Application\DTO\TenantBoasVindasMailPayload;
 use App\Modules\Identidade\Application\Port\Out\JwtTokenPort;
+use App\Modules\Identidade\Application\Port\Out\TenantBoasVindasMailPort;
 use App\Modules\Identidade\Application\Port\Out\TenantRepositoryPort;
 use App\Modules\Identidade\Application\Port\Out\UsuarioClienteRepositoryPort;
+use App\Modules\Identidade\Domain\Services\TenantPortalUrlBuilder;
 use App\Modules\Identidade\Domain\Exceptions\CnpjDuplicadoException;
 use App\Modules\Identidade\Domain\Exceptions\EmailJaCadastradoNoTenantException;
 use App\Modules\Identidade\Domain\Exceptions\SlugDuplicadoException;
+use App\Modules\Identidade\Domain\Exceptions\SlugReservadoException;
 use App\Modules\Identidade\Domain\Policies\EmailUnicoPorTenant;
+use App\Modules\Identidade\Domain\Policies\ReservedSlugPolicy;
 use App\Modules\Identidade\Domain\Services\CnpjValidator;
 use App\Modules\Identidade\Domain\Services\SlugGenerator;
 use Illuminate\Support\Carbon;
@@ -25,6 +30,7 @@ final class CadastrarTenantComPrimeiroUsuarioUseCase
         private TenantRepositoryPort $tenantRepository,
         private UsuarioClienteRepositoryPort $usuarioRepository,
         private JwtTokenPort $jwtToken,
+        private TenantBoasVindasMailPort $boasVindasMail,
     ) {}
 
     public function executar(CadastroInput $input): AuthResult
@@ -39,7 +45,15 @@ final class CadastrarTenantComPrimeiroUsuarioUseCase
             ? Str::slug($input->slug, '-', 'pt')
             : SlugGenerator::fromRazaoSocial($input->razaoSocial);
 
-        if ($slug === '' || $this->tenantRepository->existsBySlug($slug)) {
+        if ($slug === '') {
+            throw new SlugDuplicadoException;
+        }
+
+        if (ReservedSlugPolicy::isReserved($slug)) {
+            throw new SlugReservadoException;
+        }
+
+        if ($this->tenantRepository->existsBySlug($slug)) {
             throw new SlugDuplicadoException;
         }
 
@@ -77,6 +91,8 @@ final class CadastrarTenantComPrimeiroUsuarioUseCase
             return ['tenant' => $tenant, 'usuario' => $usuario];
         });
 
+        $this->enviarBoasVindas($result['tenant'], $result['usuario']);
+
         $tokenData = $this->jwtToken->issueForUsuarioCliente($result['usuario']);
 
         return new AuthResult(
@@ -85,5 +101,27 @@ final class CadastrarTenantComPrimeiroUsuarioUseCase
             usuario: $result['usuario'],
             tenant: $result['tenant'],
         );
+    }
+
+    private function enviarBoasVindas(Tenant $tenant, UsuarioCliente $usuario): void
+    {
+        if (! config('identidade.welcome_mail.enabled', true)) {
+            return;
+        }
+
+        $portalUrl = rtrim(TenantPortalUrlBuilder::build($tenant->slug), '/');
+
+        try {
+            $this->boasVindasMail->enviar(new TenantBoasVindasMailPayload(
+                nomeAdmin: $usuario->nome,
+                emailAdmin: $usuario->email,
+                razaoSocial: $tenant->razao_social,
+                portalUrl: $portalUrl,
+                loginUrl: $portalUrl.'/auth/login',
+                trialEndsAt: $tenant->trial_ends_at ?? Carbon::now()->addDays(15),
+            ));
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
     }
 }

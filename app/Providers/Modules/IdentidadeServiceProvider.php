@@ -3,9 +3,12 @@
 namespace App\Providers\Modules;
 
 use App\Modules\Identidade\Application\Port\Out\JwtTokenPort;
+use App\Modules\Identidade\Application\Port\Out\TenantBoasVindasMailPort;
 use App\Modules\Identidade\Application\Port\Out\TenantRepositoryPort;
 use App\Modules\Identidade\Application\Port\Out\UsuarioClienteRepositoryPort;
 use App\Modules\Identidade\Infrastructure\Auth\HmacJwtTokenService;
+use App\Modules\Identidade\Infrastructure\Mail\LaravelTenantBoasVindasMailAdapter;
+use App\Modules\Identidade\Infrastructure\Mail\NullTenantBoasVindasMailAdapter;
 use App\Modules\Identidade\Infrastructure\Persistence\EloquentTenantRepository;
 use App\Modules\Identidade\Infrastructure\Persistence\EloquentUsuarioClienteRepository;
 use Illuminate\Support\ServiceProvider;
@@ -17,5 +20,12 @@ class IdentidadeServiceProvider extends ServiceProvider
         $this->app->bind(TenantRepositoryPort::class, EloquentTenantRepository::class);
         $this->app->bind(UsuarioClienteRepositoryPort::class, EloquentUsuarioClienteRepository::class);
         $this->app->bind(JwtTokenPort::class, HmacJwtTokenService::class);
+        $this->app->bind(TenantBoasVindasMailPort::class, function () {
+            if (! config('identidade.welcome_mail.enabled', true)) {
+                return new NullTenantBoasVindasMailAdapter;
+            }
+
+            return new LaravelTenantBoasVindasMailAdapter;
+        });
     }
 }

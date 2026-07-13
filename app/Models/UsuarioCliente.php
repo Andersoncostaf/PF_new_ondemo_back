@@ -26,6 +26,7 @@ class UsuarioCliente extends Model
         'perfil',
         'status',
         'email_verified_at',
+        'preferencias',
     ];
 
     protected $hidden = [
@@ -35,6 +36,7 @@ class UsuarioCliente extends Model
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'preferencias' => 'array',
     ];
 
     public function tenant(): BelongsTo

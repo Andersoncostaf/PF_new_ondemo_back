@@ -1,0 +1,947 @@
+openapi: 3.0.3
+info:
+  title: Portal Fornecedor On Demand — API
+  description: |
+    API REST multi-tenant do Portal Fornecedor On Demand (Laravel 10).
+
+    **Base path:** `/api`
+
+    **Multi-tenant:** rotas de login resolvem o tenant pelo host (`portalfornecedor.{slug}.local`)
+    ou pelo header `X-Tenant-Slug` (útil em dev/testes).
+
+    **Autenticação:** JWT Bearer (`Authorization: Bearer {token}`) emitido em cadastro ou login.
+  version: 1.0.0
+  contact:
+    name: Portal Fornecedor On Demand
+
+servers:
+  - url: http://api.portalfornecedor.local/api
+    description: Local — Docker (nginx :80)
+  - url: http://api.portalfornecedor.local:8000/api
+    description: Local — `php artisan serve`
+  - url: https://api.portalfornecedor.com.br/api
+    description: Produção (homolog/prod)
+
+tags:
+  - name: Health
+    description: Disponibilidade da API
+  - name: Identidade — Público
+    description: Cadastro e verificação de slug (sem JWT)
+  - name: Identidade — Auth
+    description: Login e logout
+  - name: Identidade — Perfil
+    description: Perfil, módulos e filiais do usuário autenticado
+  - name: Identidade — Admin
+    description: Gestão de colaboradores (perfil `admin_tenant`)
+  - name: Contratação
+    description: Wizard de contratação de serviços
+  - name: Contratação — Aprovação
+    description: Fluxo de análise e aprovação
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token JWT retornado por `/v1/public/cadastro` ou `/v1/auth/login`
+
+  parameters:
+    TenantSlug:
+      name: X-Tenant-Slug
+      in: header
+      required: false
+      schema:
+        type: string
+        example: clientex
+      description: Slug do tenant (alternativa ao host multi-tenant)
+    ContratacaoUuid:
+      name: uuid
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    UsuarioUuid:
+      name: uuid
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    AnexoId:
+      name: anexoId
+      in: path
+      required: true
+      schema:
+        type: integer
+    ApontamentoId:
+      name: apontamentoId
+      in: path
+      required: true
+      schema:
+        type: integer
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+        app:
+          type: string
+        database:
+          type: string
+          enum: [connected, disconnected, unknown]
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        token_type:
+          type: string
+          example: Bearer
+        expires_in:
+          type: integer
+          example: 3600
+        usuario:
+          $ref: '#/components/schemas/UsuarioResumo'
+        tenant:
+          $ref: '#/components/schemas/TenantResumo'
+        portal_url:
+          type: string
+          format: uri
+          example: http://portalfornecedor.clientex.local:4200
+
+    UsuarioResumo:
+      type: object
+      properties:
+        id:
+          type: integer
+        nome:
+          type: string
+        email:
+          type: string
+          format: email
+        perfil:
+          type: string
+          enum: [admin_tenant, area, compras, gestor, fiscal, auditoria]
+        cargo:
+          type: string
+          nullable: true
+
+    TenantResumo:
+      type: object
+      properties:
+        id:
+          type: integer
+        slug:
+          type: string
+        razao_social:
+          type: string
+        status:
+          type: string
+          enum: [ativo, inativo]
+        subscription_status:
+          type: string
+          enum: [trial, active, expired, cancelled]
+        trial_ends_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    CadastroRequest:
+      type: object
+      required:
+        - razao_social
+        - cnpj
+        - nome
+        - email
+        - password
+        - password_confirmation
+      properties:
+        razao_social:
+          type: string
+          maxLength: 255
+        cnpj:
+          type: string
+          pattern: '^\d{14}$'
+          description: 14 dígitos, validação algorítmica
+          example: '11222333000181'
+        slug:
+          type: string
+          maxLength: 64
+          pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+          description: Opcional; gerado a partir da razão social se omitido
+        nome:
+          type: string
+          maxLength: 255
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        password_confirmation:
+          type: string
+          minLength: 8
+        cargo:
+          type: string
+          maxLength: 128
+          nullable: true
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    SlugDisponivelResponse:
+      type: object
+      properties:
+        slug:
+          type: string
+        disponivel:
+          type: boolean
+
+    ModulosResponse:
+      type: object
+      properties:
+        modulos:
+          type: array
+          items:
+            type: object
+            properties:
+              codigo:
+                type: string
+                example: contratacao
+              label:
+                type: string
+              rota:
+                type: string
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+
+    ConvidarColaboradorRequest:
+      type: object
+      required:
+        - nome
+        - email
+        - password
+        - perfil
+      properties:
+        nome:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        perfil:
+          type: string
+          enum: [area, compras, gestor, fiscal, auditoria]
+        cargo:
+          type: string
+          nullable: true
+
+    AtualizarColaboradorRequest:
+      type: object
+      properties:
+        nome:
+          type: string
+        cargo:
+          type: string
+          nullable: true
+        perfil:
+          type: string
+          enum: [area, compras, gestor, fiscal, auditoria]
+        status:
+          type: string
+          enum: [ativo, inativo]
+
+    RedefinirSenhaRequest:
+      type: object
+      required:
+        - password
+        - password_confirmation
+      properties:
+        password:
+          type: string
+          minLength: 8
+        password_confirmation:
+          type: string
+          minLength: 8
+
+    ContratacaoPayload:
+      type: object
+      description: Campos do wizard de contratação (rascunho ou submissão parcial)
+      properties:
+        titulo:
+          type: string
+        categoria_servico:
+          type: string
+        local:
+          type: string
+        prazo_desejado:
+          type: string
+          format: date
+        termo_referencia:
+          type: string
+        empresa:
+          type: string
+        empresa_cnpj:
+          type: string
+        empresa_endereco:
+          type: string
+        departamento:
+          type: string
+        qqp_itens:
+          type: array
+          items:
+            type: object
+            properties:
+              descricao:
+                type: string
+              quantidade:
+                type: number
+              unidade:
+                type: string
+              valor_unitario:
+                type: number
+              ordem:
+                type: integer
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      operationId: healthCheck
+      responses:
+        '200':
+          description: API operacional
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /v1/public/cadastro:
+    post:
+      tags: [Identidade — Público]
+      summary: Cadastro de tenant + primeiro usuário admin
+      description: Cria tenant com trial de 15 dias e retorna JWT.
+      operationId: cadastroPublico
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CadastroRequest'
+      responses:
+        '201':
+          description: Tenant e usuário criados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '422':
+          description: Validação ou regra de negócio (CNPJ/slug/e-mail duplicado)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/public/slug-disponivel:
+    get:
+      tags: [Identidade — Público]
+      summary: Verificar disponibilidade de slug
+      operationId: slugDisponivel
+      parameters:
+        - name: slug
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resultado da verificação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlugDisponivelResponse'
+
+  /v1/auth/login:
+    post:
+      tags: [Identidade — Auth]
+      summary: Login
+      operationId: authLogin
+      parameters:
+        - $ref: '#/components/parameters/TenantSlug'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Autenticado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/auth/logout:
+    post:
+      tags: [Identidade — Auth]
+      summary: Logout (blacklist do JWT)
+      operationId: authLogout
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout idempotente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /v1/me:
+    get:
+      tags: [Identidade — Perfil]
+      summary: Perfil do usuário autenticado
+      operationId: meShow
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Perfil + tenant resumido
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /v1/me/modulos:
+    get:
+      tags: [Identidade — Perfil]
+      summary: Módulos permitidos ao usuário
+      operationId: meModulos
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de módulos habilitados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModulosResponse'
+
+  /v1/filiais:
+    get:
+      tags: [Identidade — Perfil]
+      summary: Listar filiais do tenant
+      operationId: filiaisIndex
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Filiais do tenant
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+
+  /v1/admin/usuarios:
+    get:
+      tags: [Identidade — Admin]
+      summary: Listar colaboradores do tenant
+      operationId: adminUsuariosIndex
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Colaboradores
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+        '403':
+          description: Requer perfil admin_tenant
+    post:
+      tags: [Identidade — Admin]
+      summary: Convidar colaborador
+      operationId: adminUsuariosStore
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConvidarColaboradorRequest'
+      responses:
+        '201':
+          description: Colaborador criado
+        '422':
+          description: Erro de validação ou domínio
+
+  /v1/admin/usuarios/{uuid}:
+    patch:
+      tags: [Identidade — Admin]
+      summary: Atualizar colaborador
+      operationId: adminUsuariosUpdate
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UsuarioUuid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AtualizarColaboradorRequest'
+      responses:
+        '200':
+          description: Colaborador atualizado
+
+  /v1/admin/usuarios/{uuid}/redefinir-senha:
+    post:
+      tags: [Identidade — Admin]
+      summary: Redefinir senha de colaborador
+      operationId: adminUsuariosRedefinirSenha
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UsuarioUuid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedefinirSenhaRequest'
+      responses:
+        '200':
+          description: Senha redefinida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /v1/contratacao:
+    get:
+      tags: [Contratação]
+      summary: Listar contratações do tenant
+      operationId: contratacaoIndex
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista paginada
+    post:
+      tags: [Contratação]
+      summary: Criar rascunho de contratação
+      operationId: contratacaoStore
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContratacaoPayload'
+      responses:
+        '201':
+          description: Rascunho criado
+
+  /v1/contratacao/{uuid}:
+    get:
+      tags: [Contratação]
+      summary: Obter contratação
+      operationId: contratacaoShow
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContratacaoUuid'
+      responses:
+        '200':
+          description: Detalhe da contratação
+    patch:
+      tags: [Contratação]
+      summary: Atualizar rascunho
+      operationId: contratacaoUpdate
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContratacaoUuid'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContratacaoPayload'
+      responses:
+        '200':
+          description: Rascunho atualizado
+
+  /v1/contratacao/{uuid}/submeter:
+    post:
+      tags: [Contratação]
+      summary: Submeter contratação para análise
+      operationId: contratacaoSubmeter
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContratacaoUuid'
+      responses:
+        '200':
+          description: Submetida
+
+  /v1/contratacao/{uuid}/anexos:
+    post:
+      tags: [Contratação]
+      summary: Adicionar anexo
+      operationId: contratacaoAnexoStore
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContratacaoUuid'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [arquivo]
+              properties:
+                descricao:
+                  type: string
+                arquivo:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Anexo adicionado
+
+  /v1/contratacao/{uuid}/anexos/{anexoId}:
+    delete:
+      tags: [Contratação]
+      summary: Remover anexo
+      operationId: contratacaoAnexoDestroy
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContratacaoUuid'
+        - $ref: '#/components/parameters/AnexoId'
+      responses:
+        '200':
+          description: Anexo removido
+
+  /v1/contratacao/{uuid}/apontamentos:
+    get:
+      tags: [Contratação]
+      summary: Listar apontamentos (solicitante)
+      operationId: contratacaoApontamentosIndex
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContratacaoUuid'
+      responses:
+        '200':
+          description: Apontamentos
+
+  /v1/contratacao/{uuid}/apontamentos/{apontamentoId}/responder:
+    post:
+      tags: [Contratação]
+      summary: Responder apontamento
+      operationId: contratacaoApontamentoResponder
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContratacaoUuid'
+        - $ref: '#/components/parameters/ApontamentoId'
+      responses:
+        '200':
+          description: Resposta registrada
+
+  /v1/contratacao/{uuid}/reenviar:
+    post:
+      tags: [Contratação]
+      summary: Reenviar após ajustes
+      operationId: contratacaoReenviar
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContratacaoUuid'
+      responses:
+        '200':
+          description: Reenviada
+
+  /v1/contratacao/aprovacao/pendentes:
+    get:
+      tags: [Contratação — Aprovação]
+      summary: Listar contratações pendentes de análise
+      operationId: aprovacaoPendentes
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de pendentes
+
+  /v1/contratacao/aprovacao/fila:
+    get:
+      tags: [Contratação — Aprovação]
+      summary: Fila ampliada de Compras (análise + vendor list)
+      operationId: aprovacaoFila
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Fila de Compras
+
+  /v1/contratacao/vendor-list/{uuid}:
+    get:
+      tags: [Contratação — Vendor List]
+      summary: Detalhe para análise de fornecedores
+      operationId: vendorListShow
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContratacaoUuid'
+      responses:
+        '200':
+          description: Detalhe com fornecedores
+
+  /v1/contratacao/vendor-list/{uuid}/fornecedores:
+    get:
+      tags: [Contratação — Vendor List]
+      summary: Listar fornecedores da contratação
+      operationId: vendorListFornecedoresIndex
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContratacaoUuid'
+      responses:
+        '200':
+          description: Lista de fornecedores
+    post:
+      tags: [Contratação — Vendor List]
+      summary: Cadastrar fornecedor na contratação
+      operationId: vendorListFornecedorStore
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContratacaoUuid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cnpj, razao_social]
+              properties:
+                cnpj:
+                  type: string
+                razao_social:
+                  type: string
+                telefone:
+                  type: string
+                email:
+                  type: string
+                vendedor:
+                  type: string
+      responses:
+        '201':
+          description: Fornecedor cadastrado
+
+  /v1/contratacao/vendor-list/{uuid}/fornecedores/{fornecedorUuid}:
+    delete:
+      tags: [Contratação — Vendor List]
+      summary: Remover fornecedor da contratação
+      operationId: vendorListFornecedorDestroy
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContratacaoUuid'
+        - name: fornecedorUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Fornecedor removido
+
+  /v1/contratacao/aprovacao/{uuid}/assumir:
+    post:
+      tags: [Contratação — Aprovação]
+      summary: Assumir análise
+      operationId: aprovacaoAssumir
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContratacaoUuid'
+      responses:
+        '200':
+          description: Análise assumida
+
+  /v1/contratacao/aprovacao/{uuid}:
+    get:
+      tags: [Contratação — Aprovação]
+      summary: Detalhe para análise
+      operationId: aprovacaoShow
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContratacaoUuid'
+      responses:
+        '200':
+          description: Detalhe
+
+  /v1/contratacao/aprovacao/{uuid}/apontamentos:
+    get:
+      tags: [Contratação — Aprovação]
+      summary: Listar apontamentos (analista)
+      operationId: aprovacaoApontamentosIndex
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContratacaoUuid'
+        - name: etapa
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Apontamentos
+    post:
+      tags: [Contratação — Aprovação]
+      summary: Salvar apontamento
+      operationId: aprovacaoApontamentoStore
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContratacaoUuid'
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [etapa]
+              properties:
+                etapa:
+                  type: string
+                descricao:
+                  type: string
+                arquivo:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Apontamento salvo
+
+  /v1/contratacao/aprovacao/{uuid}/apontamentos/{apontamentoId}:
+    delete:
+      tags: [Contratação — Aprovação]
+      summary: Excluir apontamento
+      operationId: aprovacaoApontamentoDestroy
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContratacaoUuid'
+        - $ref: '#/components/parameters/ApontamentoId'
+      responses:
+        '200':
+          description: Apontamento excluído
+
+  /v1/contratacao/aprovacao/{uuid}/apontamentos/{apontamentoId}/anexo:
+    get:
+      tags: [Contratação — Aprovação]
+      summary: Baixar anexo do apontamento
+      operationId: aprovacaoApontamentoAnexo
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContratacaoUuid'
+        - $ref: '#/components/parameters/ApontamentoId'
+      responses:
+        '200':
+          description: Arquivo binário
+
+  /v1/contratacao/aprovacao/{uuid}/retornar-ajustes:
+    post:
+      tags: [Contratação — Aprovação]
+      summary: Retornar para ajustes do solicitante
+      operationId: aprovacaoRetornarAjustes
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContratacaoUuid'
+      responses:
+        '200':
+          description: Retornada
+
+  /v1/contratacao/aprovacao/{uuid}/aprovar-analise:
+    post:
+      tags: [Contratação — Aprovação]
+      summary: Aprovar análise
+      operationId: aprovacaoAprovarAnalise
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContratacaoUuid'
+      responses:
+        '200':
+          description: Aprovada

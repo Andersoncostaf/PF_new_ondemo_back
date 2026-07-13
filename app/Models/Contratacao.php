@@ -34,12 +34,15 @@ class Contratacao extends Model
         'termo_referencia_campos',
         'solicitacao_servico',
         'status',
+        'analise_iniciada_em',
+        'analista_usuario_id',
     ];
 
     protected $casts = [
         'prazo_desejado' => 'date',
         'termo_referencia_campos' => 'array',
         'solicitacao_servico' => 'array',
+        'analise_iniciada_em' => 'datetime',
     ];
 
     public function tenant(): BelongsTo
@@ -65,5 +68,20 @@ class Contratacao extends Model
     public function anexos(): HasMany
     {
         return $this->hasMany(ContratacaoAnexo::class, 'contratacao_id')->orderBy('created_at');
+    }
+
+    public function analista(): BelongsTo
+    {
+        return $this->belongsTo(UsuarioCliente::class, 'analista_usuario_id');
+    }
+
+    public function apontamentos(): HasMany
+    {
+        return $this->hasMany(ContratacaoApontamento::class, 'contratacao_id')->orderBy('created_at');
+    }
+
+    public function fornecedores(): HasMany
+    {
+        return $this->hasMany(ContratacaoFornecedor::class, 'contratacao_id')->orderBy('created_at');
     }
 }

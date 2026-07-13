@@ -3,6 +3,7 @@
 namespace App\Modules\Contratacao\Application\UseCase;
 
 use App\Models\UsuarioCliente;
+use App\Modules\Contratacao\Application\DTO\ContratacaoListFilter;
 use App\Modules\Contratacao\Application\DTO\ContratacaoOutput;
 use App\Modules\Contratacao\Application\Port\Out\ContratacaoRepositoryPort;
 
@@ -15,9 +16,9 @@ final class ListarContratacoesTenantUseCase
     /**
      * @return array<string, mixed>
      */
-    public function executar(UsuarioCliente $usuario, int $page = 1): array
+    public function executar(UsuarioCliente $usuario, ContratacaoListFilter $filter): array
     {
-        $paginator = $this->repository->listByTenant($usuario->tenant_id, 15, $page);
+        $paginator = $this->repository->listByTenant($usuario->tenant_id, $filter);
 
         return [
             'data' => collect($paginator->items())

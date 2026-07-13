@@ -4,6 +4,7 @@ namespace App\Modules\Identidade\Application\DTO;
 
 use App\Models\Tenant;
 use App\Models\UsuarioCliente;
+use App\Modules\Identidade\Domain\Services\TenantPortalUrlBuilder;
 
 final class AuthResult
 {
@@ -29,6 +30,7 @@ final class AuthResult
                 'email' => $this->usuario->email,
                 'perfil' => $this->usuario->perfil,
                 'cargo' => $this->usuario->cargo,
+                'preferencias' => $this->usuario->preferencias,
             ],
             'tenant' => [
                 'id' => $this->tenant->id,
@@ -38,6 +40,7 @@ final class AuthResult
                 'subscription_status' => $this->tenant->subscription_status,
                 'trial_ends_at' => $this->tenant->trial_ends_at?->toIso8601String(),
             ],
+            'portal_url' => TenantPortalUrlBuilder::build($this->tenant->slug),
         ];
     }
 }

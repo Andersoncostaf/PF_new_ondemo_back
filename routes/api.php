@@ -78,6 +78,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/{uuid}', [ContratacaoVendorListController::class, 'show']);
             Route::get('/{uuid}/fornecedores', [ContratacaoVendorListController::class, 'listarFornecedores']);
             Route::get('/{uuid}/fornecedores/buscar', [ContratacaoVendorListController::class, 'buscarFornecedorPorCnpj']);
+            Route::post('/{uuid}/fornecedores/enriquecer', [ContratacaoVendorListController::class, 'enriquecerFornecedor']);
             Route::post('/{uuid}/fornecedores', [ContratacaoVendorListController::class, 'cadastrarFornecedor']);
             Route::post('/{uuid}/fornecedores/{fornecedorUuid}/aceite', [ContratacaoVendorListController::class, 'registrarAceite']);
             Route::post('/{uuid}/sugestoes-fornecedores', [ContratacaoVendorListController::class, 'gerarSugestoesFornecedores']);

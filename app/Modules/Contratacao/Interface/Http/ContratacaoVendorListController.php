@@ -5,8 +5,10 @@ namespace App\Modules\Contratacao\Interface\Http;
 use App\Http\Controllers\Controller;
 use App\Models\UsuarioCliente;
 use App\Modules\Contratacao\Application\Service\ContratacaoVendorListService;
+use App\Modules\Contratacao\Application\Service\EnriquecerFornecedorService;
 use App\Modules\Contratacao\Application\Service\SugestaoFornecedorService;
 use App\Modules\Contratacao\Domain\Exceptions\ContratacaoDomainException;
+use App\Modules\Contratacao\Interface\Http\Requests\EnriquecerFornecedorRequest;
 use App\Modules\Contratacao\Interface\Http\Requests\GerarSugestoesFornecedorRequest;
 use App\Modules\Contratacao\Interface\Http\Requests\StoreContratacaoFornecedorRequest;
 use Illuminate\Http\JsonResponse;
@@ -17,6 +19,7 @@ class ContratacaoVendorListController extends Controller
     public function __construct(
         private ContratacaoVendorListService $vendorListService,
         private SugestaoFornecedorService $sugestaoFornecedorService,
+        private EnriquecerFornecedorService $enriquecerFornecedorService,
     ) {}
 
     public function show(Request $request, string $uuid): JsonResponse
@@ -72,6 +75,20 @@ class ContratacaoVendorListController extends Controller
                     $uuid,
                     (string) $request->query('cnpj', ''),
                 ),
+            );
+        } catch (ContratacaoDomainException $e) {
+            return response()->json($e->payload(), $e->statusCode());
+        }
+    }
+
+    public function enriquecerFornecedor(EnriquecerFornecedorRequest $request, string $uuid): JsonResponse
+    {
+        /** @var UsuarioCliente $usuario */
+        $usuario = $request->attributes->get('usuario_cliente');
+
+        try {
+            return response()->json(
+                $this->enriquecerFornecedorService->enriquecer($usuario, $uuid, $request->validated()),
             );
         } catch (ContratacaoDomainException $e) {
             return response()->json($e->payload(), $e->statusCode());

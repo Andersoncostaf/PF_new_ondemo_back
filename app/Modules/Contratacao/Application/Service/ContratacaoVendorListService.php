@@ -16,6 +16,7 @@ use App\Modules\Contratacao\Domain\Policies\ContratacaoElegivelParaVendorList;
 use App\Modules\Contratacao\Domain\Policies\ContratacaoPertenceAoTenant;
 use App\Modules\Contratacao\Domain\Policies\FornecedorCnpjUnicoNaContratacao;
 use App\Modules\Contratacao\Domain\Policies\UsuarioPodeEditarVendorList;
+use App\Modules\Contratacao\Infrastructure\External\BrasilApiCnpjClient;
 
 final class ContratacaoVendorListService
 {
@@ -24,6 +25,7 @@ final class ContratacaoVendorListService
         private ContratacaoFornecedorRepositoryPort $fornecedorRepository,
         private FornecedorCatalogoRepositoryPort $catalogoRepository,
         private FornecedorHistoricoRepositoryPort $historicoRepository,
+        private BrasilApiCnpjClient $brasilApi,
     ) {}
 
     /**
@@ -111,6 +113,21 @@ final class ContratacaoVendorListService
         $historico = $this->historicoRepository->findByCnpj($contratacao, $usuario->tenant_id, $cnpjNorm);
         if ($historico !== null) {
             return ['encontrado' => true, ...$historico];
+        }
+
+        $brasil = $this->brasilApi->consultar($cnpjNorm);
+        if ($brasil !== null) {
+            return [
+                'encontrado' => true,
+                'origem' => 'brasil_api',
+                'cnpj' => $brasil['cnpj'] ?? $cnpjNorm,
+                'razao_social' => $brasil['razao_social'] ?? null,
+                'telefone' => $brasil['telefone'] ?? null,
+                'email' => $brasil['email'] ?? null,
+                'vendedor' => $brasil['vendedor'] ?? null,
+                'cidade' => $brasil['cidade'] ?? null,
+                'uf' => $brasil['uf'] ?? null,
+            ];
         }
 
         return ['encontrado' => false];

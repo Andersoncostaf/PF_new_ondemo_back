@@ -140,6 +140,7 @@ final class WebSearchSugestaoFornecedorClient implements N8nSugestaoFornecedorPo
 
         $resultado = [];
         $vistos = [];
+        $urls = $this->extrairUrls($html);
 
         foreach ($titulos as $index => $titulo) {
             $nome = $this->normalizarNomeEmpresa($titulo);
@@ -160,6 +161,8 @@ final class WebSearchSugestaoFornecedorClient implements N8nSugestaoFornecedorPo
             }
 
             [$cidade, $uf] = $this->inferirLocalidade($brief, $snippet);
+            $url = $urls[$index] ?? null;
+            $redes = $url ? $this->classificarUrl($url) : [];
 
             $resultado[] = [
                 'cnpj' => $cnpj,
@@ -168,6 +171,10 @@ final class WebSearchSugestaoFornecedorClient implements N8nSugestaoFornecedorPo
                 'email' => $this->extrairEmail($snippet),
                 'cidade' => $cidade,
                 'uf' => $uf,
+                'site' => $redes['site'] ?? null,
+                'instagram' => $redes['instagram'] ?? null,
+                'linkedin' => $redes['linkedin'] ?? null,
+                'facebook' => $redes['facebook'] ?? null,
                 'motivo' => sprintf(
                     'Encontrado na busca web para “%s” próximo a %s. Valide CNPJ e contatos antes de cadastrar.',
                     trim((string) ($brief['categoria_servico'] ?? $brief['titulo'] ?? 'serviço')),
@@ -181,6 +188,45 @@ final class WebSearchSugestaoFornecedorClient implements N8nSugestaoFornecedorPo
         }
 
         return $resultado;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function extrairUrls(string $html): array
+    {
+        $urls = [];
+        if (preg_match_all('/uddg=([^&"]+)/i', $html, $uddg)) {
+            foreach ($uddg[1] as $encoded) {
+                $url = urldecode($encoded);
+                if (filter_var($url, FILTER_VALIDATE_URL)) {
+                    $urls[] = $url;
+                }
+            }
+        }
+
+        return $urls;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function classificarUrl(string $url): array
+    {
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        $host = preg_replace('/^www\./', '', $host) ?? $host;
+
+        if (str_contains($host, 'instagram.com')) {
+            return ['instagram' => $url];
+        }
+        if (str_contains($host, 'linkedin.com')) {
+            return ['linkedin' => $url];
+        }
+        if (str_contains($host, 'facebook.com') || str_contains($host, 'fb.com')) {
+            return ['facebook' => $url];
+        }
+
+        return ['site' => $url];
     }
 
     private function normalizarNomeEmpresa(string $titulo): ?string

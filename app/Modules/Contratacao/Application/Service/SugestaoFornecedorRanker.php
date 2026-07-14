@@ -137,6 +137,10 @@ final class SugestaoFornecedorRanker
       'email' => $candidato['email'] ?? null,
       'cidade' => $candidato['cidade'] ?? null,
       'uf' => $candidato['uf'] ?? null,
+      'site' => $candidato['site'] ?? null,
+      'instagram' => $candidato['instagram'] ?? null,
+      'linkedin' => $candidato['linkedin'] ?? null,
+      'facebook' => $candidato['facebook'] ?? null,
       'motivo' => $motivo,
       'ja_cadastrado' => $jaCadastrado,
     ];

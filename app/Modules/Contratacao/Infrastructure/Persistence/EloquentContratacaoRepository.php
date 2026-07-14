@@ -230,6 +230,14 @@ final class EloquentContratacaoRepository implements ContratacaoRepositoryPort
         return $contratacao->fresh(['qqpItens', 'anexos', 'analista', 'criadoPor']);
     }
 
+    public function marcarVencedorDefinido(Contratacao $contratacao): Contratacao
+    {
+        $contratacao->status = ContratacaoStatus::VENCEDOR_DEFINIDO;
+        $contratacao->save();
+
+        return $contratacao->fresh(['qqpItens', 'anexos', 'analista', 'criadoPor']);
+    }
+
     public function reenviarAposAjustes(Contratacao $contratacao): Contratacao
     {
         $contratacao->status = ContratacaoStatus::AGUARDANDO_ANALISE_COMPRAS;

@@ -20,4 +20,15 @@ return [
             'timeout_seconds' => (int) env('CONTRATACAO_SUGESTAO_WEB_SEARCH_TIMEOUT_SECONDS', 20),
         ],
     ],
+    'enrichment' => [
+        'brasil_api' => [
+            'enabled' => (bool) env('CONTRATACAO_ENRICHMENT_BRASIL_API_ENABLED', true),
+            'base_url' => env('CONTRATACAO_ENRICHMENT_BRASIL_API_BASE_URL', 'https://brasilapi.com.br/api/cnpj/v1'),
+            'timeout_seconds' => (int) env('CONTRATACAO_ENRICHMENT_BRASIL_API_TIMEOUT_SECONDS', 12),
+        ],
+        'web_search' => [
+            'enabled' => (bool) env('CONTRATACAO_ENRICHMENT_WEB_SEARCH_ENABLED', true),
+            'timeout_seconds' => (int) env('CONTRATACAO_ENRICHMENT_WEB_SEARCH_TIMEOUT_SECONDS', 20),
+        ],
+    ],
 ];

@@ -1,38 +1,23 @@
 <?php
 
-
-
 namespace App\Modules\Contratacao\Interface\Http\Requests;
 
+use Illuminate\Foundation\Http\FormRequest;
 
-
-class StoreContratacaoRequest extends ContratacaoRequestBase
-
+class ResponderPropostaApontamentoRequest extends FormRequest
 {
-
     public function authorize(): bool
-
     {
-
         return true;
-
     }
-
-
 
     /**
-
      * @return array<string, mixed>
-
      */
-
     public function rules(): array
-
     {
-
-        return $this->sharedRules();
-
+        return [
+            'resposta' => ['required', 'string', 'min:1'],
+        ];
     }
-
 }
-

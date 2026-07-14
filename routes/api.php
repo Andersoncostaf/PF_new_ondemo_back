@@ -78,10 +78,37 @@ Route::prefix('v1')->group(function () {
             Route::get('/{uuid}', [ContratacaoVendorListController::class, 'show']);
             Route::get('/{uuid}/fornecedores', [ContratacaoVendorListController::class, 'listarFornecedores']);
             Route::get('/{uuid}/fornecedores/buscar', [ContratacaoVendorListController::class, 'buscarFornecedorPorCnpj']);
+            Route::post('/{uuid}/fornecedores/enriquecer', [ContratacaoVendorListController::class, 'enriquecerFornecedor']);
             Route::post('/{uuid}/fornecedores', [ContratacaoVendorListController::class, 'cadastrarFornecedor']);
             Route::post('/{uuid}/fornecedores/{fornecedorUuid}/aceite', [ContratacaoVendorListController::class, 'registrarAceite']);
             Route::post('/{uuid}/sugestoes-fornecedores', [ContratacaoVendorListController::class, 'gerarSugestoesFornecedores']);
             Route::delete('/{uuid}/fornecedores/{fornecedorUuid}', [ContratacaoVendorListController::class, 'removerFornecedor']);
+
+            Route::put('/{uuid}/fornecedores/{fornecedorUuid}/proposta', [ContratacaoVendorListController::class, 'salvarProposta']);
+            Route::put('/{uuid}/fornecedor-vencedor', [ContratacaoVendorListController::class, 'definirVencedor']);
+            Route::post('/{uuid}/aprovar-vendor-list', [ContratacaoVendorListController::class, 'aprovarVendorList']);
+
+            Route::get('/{uuid}/avaliacao-tecnica', [ContratacaoVendorListController::class, 'obterAvaliacaoTecnica']);
+            Route::put('/{uuid}/avaliacao-tecnica', [ContratacaoVendorListController::class, 'salvarAvaliacaoTecnica']);
+            Route::post('/{uuid}/avaliacao-tecnica/concluir', [ContratacaoVendorListController::class, 'concluirAvaliacaoTecnica']);
+
+            Route::get('/{uuid}/fornecedores/{fornecedorUuid}/abertura-contrato', [ContratacaoVendorListController::class, 'obterAberturaContrato']);
+            Route::post('/{uuid}/fornecedores/{fornecedorUuid}/abertura-contrato/solicitar', [ContratacaoVendorListController::class, 'solicitarAberturaContrato']);
+            Route::post('/{uuid}/fornecedores/{fornecedorUuid}/abertura-contrato/itens/{itemUuid}/analisar', [ContratacaoVendorListController::class, 'analisarItemAbertura']);
+            Route::post('/{uuid}/fornecedores/{fornecedorUuid}/abertura-contrato/confirmar', [ContratacaoVendorListController::class, 'confirmarAberturaContrato']);
+            Route::post('/{uuid}/fornecedores/{fornecedorUuid}/abertura-contrato/itens/{itemUuid}/apontamentos', [ContratacaoVendorListController::class, 'abrirApontamentoAbertura']);
+            Route::post('/{uuid}/fornecedores/{fornecedorUuid}/abertura-contrato/apontamentos/{apontamentoUuid}/responder', [ContratacaoVendorListController::class, 'responderApontamentoAbertura']);
+            Route::post('/{uuid}/fornecedores/{fornecedorUuid}/abertura-contrato/apontamentos/{apontamentoUuid}/encerrar', [ContratacaoVendorListController::class, 'encerrarApontamentoAbertura']);
+
+            Route::get('/{uuid}/fornecedores/{fornecedorUuid}/usuarios', [ContratacaoVendorListController::class, 'listarUsuariosFornecedor']);
+            Route::post('/{uuid}/fornecedores/{fornecedorUuid}/usuarios', [ContratacaoVendorListController::class, 'cadastrarUsuarioFornecedor']);
+            Route::patch('/{uuid}/fornecedores/{fornecedorUuid}/usuarios/{usuarioUuid}', [ContratacaoVendorListController::class, 'atualizarUsuarioFornecedor']);
+            Route::post('/{uuid}/fornecedores/{fornecedorUuid}/usuarios/{usuarioUuid}/inativar', [ContratacaoVendorListController::class, 'inativarUsuarioFornecedor']);
+
+            Route::get('/{uuid}/fornecedores/{fornecedorUuid}/proposta/apontamentos', [ContratacaoVendorListController::class, 'listarApontamentosProposta']);
+            Route::post('/{uuid}/fornecedores/{fornecedorUuid}/proposta/apontamentos', [ContratacaoVendorListController::class, 'criarApontamentoProposta']);
+            Route::post('/{uuid}/fornecedores/{fornecedorUuid}/proposta/apontamentos/{apontamentoUuid}/responder', [ContratacaoVendorListController::class, 'responderApontamentoProposta']);
+            Route::post('/{uuid}/fornecedores/{fornecedorUuid}/proposta/apontamentos/{apontamentoUuid}/encerrar', [ContratacaoVendorListController::class, 'encerrarApontamentoProposta']);
         });
     });
 });

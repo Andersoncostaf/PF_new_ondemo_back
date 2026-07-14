@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Contratacao extends Model
 {
@@ -83,5 +84,10 @@ class Contratacao extends Model
     public function fornecedores(): HasMany
     {
         return $this->hasMany(ContratacaoFornecedor::class, 'contratacao_id')->orderBy('created_at');
+    }
+
+    public function avaliacaoTecnica(): HasOne
+    {
+        return $this->hasOne(ContratacaoAvaliacaoTecnica::class, 'contratacao_id');
     }
 }

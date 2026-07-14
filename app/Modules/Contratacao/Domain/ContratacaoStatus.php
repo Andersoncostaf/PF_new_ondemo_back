@@ -16,6 +16,8 @@ final class ContratacaoStatus
 
     public const EM_VENDOR_LIST = 'em_vendor_list';
 
+    public const VENCEDOR_DEFINIDO = 'vencedor_definido';
+
     /** @var list<string> */
     public const FILA_APROVACAO = [
         self::AGUARDANDO_ANALISE_COMPRAS,
@@ -26,6 +28,7 @@ final class ContratacaoStatus
     public const FILA_COMPRAS = [
         self::APROVADO_COMPRAS,
         self::EM_VENDOR_LIST,
+        self::VENCEDOR_DEFINIDO,
     ];
 
     /** @var list<string> */

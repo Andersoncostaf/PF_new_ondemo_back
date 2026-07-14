@@ -35,7 +35,7 @@ final class ContratacaoVendorListService
     {
         $contratacao = $this->loadOrFail($uuid, $usuario->tenant_id);
 
-        if (! ContratacaoElegivelParaVendorList::check($contratacao)) {
+        if (! ContratacaoElegivelParaVendorList::checkConsulta($contratacao)) {
             throw new ContratacaoTransicaoInvalidaException('Contratação não está em análise de fornecedores.');
         }
 
@@ -52,7 +52,7 @@ final class ContratacaoVendorListService
     {
         $contratacao = $this->loadOrFail($uuid, $usuario->tenant_id);
 
-        if (! ContratacaoElegivelParaVendorList::check($contratacao)) {
+        if (! ContratacaoElegivelParaVendorList::checkConsulta($contratacao)) {
             throw new ContratacaoTransicaoInvalidaException('Contratação não está em análise de fornecedores.');
         }
 

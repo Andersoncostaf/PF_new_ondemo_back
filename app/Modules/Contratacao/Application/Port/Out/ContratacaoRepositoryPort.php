@@ -78,6 +78,10 @@ interface ContratacaoRepositoryPort
 
 
 
+    public function marcarVencedorDefinido(Contratacao $contratacao): Contratacao;
+
+
+
     public function reenviarAposAjustes(Contratacao $contratacao): Contratacao;
 
 

@@ -8,6 +8,8 @@ use App\Modules\Contratacao\Application\Port\Out\ContratacaoFornecedorRepository
 use App\Modules\Contratacao\Domain\AberturaContratoStatus;
 use App\Modules\Contratacao\Domain\FornecedorParticipacaoStatus;
 use App\Modules\Contratacao\Domain\Policies\FornecedorCnpjUnicoNaContratacao;
+use App\Modules\Contratacao\Domain\VisitaTecnicaResolucao;
+use App\Modules\Contratacao\Domain\VisitaTecnicaStatus;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -50,6 +52,8 @@ final class EloquentContratacaoFornecedorRepository implements ContratacaoFornec
             'vencedor' => false,
             'abertura_contrato_status' => AberturaContratoStatus::NAO_INICIADA,
             'optante_simples' => false,
+            'visita_tecnica_status' => VisitaTecnicaStatus::NAO_INICIADA,
+            'visita_tecnica_resolucao' => VisitaTecnicaResolucao::PENDENTE,
         ]);
     }
 
@@ -116,6 +120,31 @@ final class EloquentContratacaoFornecedorRepository implements ContratacaoFornec
         }
         if ($confirmadaEm !== null) {
             $fornecedor->abertura_confirmada_em = $confirmadaEm;
+        }
+
+        $fornecedor->save();
+
+        return $fornecedor->fresh() ?? $fornecedor;
+    }
+
+    public function updateVisitaTecnica(ContratacaoFornecedor $fornecedor, array $dados): ContratacaoFornecedor
+    {
+        foreach ([
+            'visita_tecnica_status',
+            'visita_tecnica_resolucao',
+            'visita_tecnica_necessaria',
+            'visita_agendada_data',
+            'visita_agendada_hora',
+            'visita_agendada_local',
+            'visita_agendada_por_compras_em',
+            'visita_tecnica_observacao',
+            'visita_dispensa_justificativa',
+            'visita_tecnica_concluida_em',
+            'visita_tecnica_dispensada_em',
+        ] as $campo) {
+            if (array_key_exists($campo, $dados)) {
+                $fornecedor->{$campo} = $dados[$campo];
+            }
         }
 
         $fornecedor->save();

@@ -3,6 +3,8 @@
 namespace App\Modules\Contratacao\Application\DTO;
 
 use App\Models\ContratacaoFornecedor;
+use App\Modules\Contratacao\Domain\VisitaTecnicaResolucao;
+use App\Modules\Contratacao\Domain\VisitaTecnicaStatus;
 
 final class ContratacaoFornecedorOutput
 {
@@ -31,6 +33,17 @@ final class ContratacaoFornecedorOutput
             'abertura_enviada_em' => $fornecedor->abertura_enviada_em?->toIso8601String(),
             'abertura_confirmada_em' => $fornecedor->abertura_confirmada_em?->toIso8601String(),
             'optante_simples' => (bool) $fornecedor->optante_simples,
+            'visita_tecnica_status' => VisitaTecnicaStatus::normalizar($fornecedor->visita_tecnica_status),
+            'visita_tecnica_resolucao' => VisitaTecnicaResolucao::normalizar($fornecedor->visita_tecnica_resolucao),
+            'visita_tecnica_necessaria' => $fornecedor->visita_tecnica_necessaria,
+            'visita_agendada_data' => $fornecedor->visita_agendada_data?->format('Y-m-d'),
+            'visita_agendada_hora' => $fornecedor->visita_agendada_hora,
+            'visita_agendada_local' => $fornecedor->visita_agendada_local,
+            'visita_agendada_por_compras_em' => $fornecedor->visita_agendada_por_compras_em?->toIso8601String(),
+            'visita_tecnica_observacao' => $fornecedor->visita_tecnica_observacao,
+            'visita_dispensa_justificativa' => $fornecedor->visita_dispensa_justificativa,
+            'visita_tecnica_concluida_em' => $fornecedor->visita_tecnica_concluida_em?->toIso8601String(),
+            'visita_tecnica_dispensada_em' => $fornecedor->visita_tecnica_dispensada_em?->toIso8601String(),
             'created_at' => $fornecedor->created_at?->toIso8601String(),
         ];
     }

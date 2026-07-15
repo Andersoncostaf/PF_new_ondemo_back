@@ -39,5 +39,10 @@ interface ContratacaoFornecedorRepositoryPort
         ?\DateTimeInterface $confirmadaEm = null,
     ): ContratacaoFornecedor;
 
+    /**
+     * @param array<string, mixed> $dados
+     */
+    public function updateVisitaTecnica(ContratacaoFornecedor $fornecedor, array $dados): ContratacaoFornecedor;
+
     public function delete(ContratacaoFornecedor $fornecedor): void;
 }

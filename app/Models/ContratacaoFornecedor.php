@@ -39,6 +39,17 @@ class ContratacaoFornecedor extends Model
         'abertura_enviada_em',
         'abertura_confirmada_em',
         'optante_simples',
+        'visita_tecnica_status',
+        'visita_tecnica_resolucao',
+        'visita_tecnica_necessaria',
+        'visita_agendada_data',
+        'visita_agendada_hora',
+        'visita_agendada_local',
+        'visita_agendada_por_compras_em',
+        'visita_tecnica_observacao',
+        'visita_dispensa_justificativa',
+        'visita_tecnica_concluida_em',
+        'visita_tecnica_dispensada_em',
     ];
 
     protected $casts = [
@@ -52,6 +63,11 @@ class ContratacaoFornecedor extends Model
         'abertura_solicitada_em' => 'datetime',
         'abertura_enviada_em' => 'datetime',
         'abertura_confirmada_em' => 'datetime',
+        'visita_tecnica_necessaria' => 'boolean',
+        'visita_agendada_data' => 'date',
+        'visita_agendada_por_compras_em' => 'datetime',
+        'visita_tecnica_concluida_em' => 'datetime',
+        'visita_tecnica_dispensada_em' => 'datetime',
     ];
 
     public function contratacao(): BelongsTo

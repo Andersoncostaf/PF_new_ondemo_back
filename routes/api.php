@@ -100,6 +100,11 @@ Route::prefix('v1')->group(function () {
             Route::post('/{uuid}/fornecedores/{fornecedorUuid}/abertura-contrato/apontamentos/{apontamentoUuid}/responder', [ContratacaoVendorListController::class, 'responderApontamentoAbertura']);
             Route::post('/{uuid}/fornecedores/{fornecedorUuid}/abertura-contrato/apontamentos/{apontamentoUuid}/encerrar', [ContratacaoVendorListController::class, 'encerrarApontamentoAbertura']);
 
+            Route::get('/{uuid}/fornecedores/{fornecedorUuid}/visita-tecnica', [ContratacaoVendorListController::class, 'obterVisitaTecnica']);
+            Route::put('/{uuid}/fornecedores/{fornecedorUuid}/visita-tecnica/agendar', [ContratacaoVendorListController::class, 'agendarVisitaTecnica']);
+            Route::post('/{uuid}/fornecedores/{fornecedorUuid}/visita-tecnica/concluir', [ContratacaoVendorListController::class, 'concluirVisitaTecnica']);
+            Route::post('/{uuid}/fornecedores/{fornecedorUuid}/visita-tecnica/dispensar', [ContratacaoVendorListController::class, 'dispensarVisitaTecnica']);
+
             Route::get('/{uuid}/fornecedores/{fornecedorUuid}/usuarios', [ContratacaoVendorListController::class, 'listarUsuariosFornecedor']);
             Route::post('/{uuid}/fornecedores/{fornecedorUuid}/usuarios', [ContratacaoVendorListController::class, 'cadastrarUsuarioFornecedor']);
             Route::patch('/{uuid}/fornecedores/{fornecedorUuid}/usuarios/{usuarioUuid}', [ContratacaoVendorListController::class, 'atualizarUsuarioFornecedor']);

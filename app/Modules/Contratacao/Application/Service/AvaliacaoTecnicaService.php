@@ -135,6 +135,12 @@ final class AvaliacaoTecnicaService
         }
 
         $indice = AvaliacaoTecnicaCalculo::indicePercentual($notasPorCodigo);
+        if ($indice === null || $indice < AvaliacaoTecnicaCriterios::INDICE_MINIMO_PERCENTUAL) {
+            throw new ContratacaoTransicaoInvalidaException(
+                'Índice ponderado mínimo de '.AvaliacaoTecnicaCriterios::INDICE_MINIMO_PERCENTUAL.'% não atingido para concluir a avaliação técnica.'
+            );
+        }
+
         $avaliacao->indice_percentual = $indice;
         $avaliacao->status = AvaliacaoTecnicaStatus::CONCLUIDA;
         $avaliacao->save();

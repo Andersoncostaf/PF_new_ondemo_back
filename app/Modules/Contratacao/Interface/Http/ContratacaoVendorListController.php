@@ -12,9 +12,13 @@ use App\Modules\Contratacao\Application\Service\EnriquecerFornecedorService;
 use App\Modules\Contratacao\Application\Service\FornecedorUsuarioService;
 use App\Modules\Contratacao\Application\Service\PropostaApontamentoService;
 use App\Modules\Contratacao\Application\Service\SugestaoFornecedorService;
+use App\Modules\Contratacao\Application\Service\VisitaTecnicaService;
 use App\Modules\Contratacao\Domain\Exceptions\ContratacaoDomainException;
+use App\Modules\Contratacao\Interface\Http\Requests\AgendarVisitaTecnicaRequest;
 use App\Modules\Contratacao\Interface\Http\Requests\AnalisarAberturaItemRequest;
+use App\Modules\Contratacao\Interface\Http\Requests\ConcluirVisitaTecnicaRequest;
 use App\Modules\Contratacao\Interface\Http\Requests\DefinirFornecedorVencedorRequest;
+use App\Modules\Contratacao\Interface\Http\Requests\DispensarVisitaTecnicaRequest;
 use App\Modules\Contratacao\Interface\Http\Requests\EnriquecerFornecedorRequest;
 use App\Modules\Contratacao\Interface\Http\Requests\GerarSugestoesFornecedorRequest;
 use App\Modules\Contratacao\Interface\Http\Requests\ResponderPropostaApontamentoRequest;
@@ -36,6 +40,7 @@ class ContratacaoVendorListController extends Controller
         private ContratacaoCotacaoService $cotacaoService,
         private AvaliacaoTecnicaService $avaliacaoTecnicaService,
         private AberturaContratoService $aberturaContratoService,
+        private VisitaTecnicaService $visitaTecnicaService,
         private FornecedorUsuarioService $fornecedorUsuarioService,
         private PropostaApontamentoService $propostaApontamentoService,
     ) {}
@@ -248,6 +253,86 @@ class ContratacaoVendorListController extends Controller
         try {
             return response()->json(
                 $this->aberturaContratoService->obter($usuario, $uuid, $fornecedorUuid),
+            );
+        } catch (ContratacaoDomainException $e) {
+            return response()->json($e->payload(), $e->statusCode());
+        }
+    }
+
+    public function obterVisitaTecnica(Request $request, string $uuid, string $fornecedorUuid): JsonResponse
+    {
+        /** @var UsuarioCliente $usuario */
+        $usuario = $request->attributes->get('usuario_cliente');
+
+        try {
+            return response()->json(
+                $this->visitaTecnicaService->obter($usuario, $uuid, $fornecedorUuid),
+            );
+        } catch (ContratacaoDomainException $e) {
+            return response()->json($e->payload(), $e->statusCode());
+        }
+    }
+
+    public function agendarVisitaTecnica(
+        AgendarVisitaTecnicaRequest $request,
+        string $uuid,
+        string $fornecedorUuid,
+    ): JsonResponse {
+        /** @var UsuarioCliente $usuario */
+        $usuario = $request->attributes->get('usuario_cliente');
+
+        try {
+            return response()->json(
+                $this->visitaTecnicaService->agendar(
+                    $usuario,
+                    $uuid,
+                    $fornecedorUuid,
+                    $request->validated(),
+                ),
+            );
+        } catch (ContratacaoDomainException $e) {
+            return response()->json($e->payload(), $e->statusCode());
+        }
+    }
+
+    public function concluirVisitaTecnica(
+        ConcluirVisitaTecnicaRequest $request,
+        string $uuid,
+        string $fornecedorUuid,
+    ): JsonResponse {
+        /** @var UsuarioCliente $usuario */
+        $usuario = $request->attributes->get('usuario_cliente');
+
+        try {
+            return response()->json(
+                $this->visitaTecnicaService->concluir(
+                    $usuario,
+                    $uuid,
+                    $fornecedorUuid,
+                    $request->validated(),
+                ),
+            );
+        } catch (ContratacaoDomainException $e) {
+            return response()->json($e->payload(), $e->statusCode());
+        }
+    }
+
+    public function dispensarVisitaTecnica(
+        DispensarVisitaTecnicaRequest $request,
+        string $uuid,
+        string $fornecedorUuid,
+    ): JsonResponse {
+        /** @var UsuarioCliente $usuario */
+        $usuario = $request->attributes->get('usuario_cliente');
+
+        try {
+            return response()->json(
+                $this->visitaTecnicaService->dispensar(
+                    $usuario,
+                    $uuid,
+                    $fornecedorUuid,
+                    $request->validated(),
+                ),
             );
         } catch (ContratacaoDomainException $e) {
             return response()->json($e->payload(), $e->statusCode());

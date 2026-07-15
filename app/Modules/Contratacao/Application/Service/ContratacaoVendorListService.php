@@ -36,7 +36,7 @@ final class ContratacaoVendorListService
         $contratacao = $this->loadOrFail($uuid, $usuario->tenant_id);
 
         if (! ContratacaoElegivelParaVendorList::checkConsulta($contratacao)) {
-            throw new ContratacaoTransicaoInvalidaException('Contratação não está em análise de fornecedores.');
+            throw new ContratacaoTransicaoInvalidaException('Contratação não está em seleção de fornecedores.');
         }
 
         $detalhe = ContratacaoOutput::fromModel($contratacao);
@@ -53,7 +53,7 @@ final class ContratacaoVendorListService
         $contratacao = $this->loadOrFail($uuid, $usuario->tenant_id);
 
         if (! ContratacaoElegivelParaVendorList::checkConsulta($contratacao)) {
-            throw new ContratacaoTransicaoInvalidaException('Contratação não está em análise de fornecedores.');
+            throw new ContratacaoTransicaoInvalidaException('Contratação não está em seleção de fornecedores.');
         }
 
         return $this->serializarFornecedores($contratacao);
@@ -68,7 +68,7 @@ final class ContratacaoVendorListService
         $contratacao = $this->loadOrFail($uuid, $usuario->tenant_id);
 
         if (! ContratacaoElegivelParaVendorList::check($contratacao)) {
-            throw new ContratacaoTransicaoInvalidaException('Contratação não está em análise de fornecedores.');
+            throw new ContratacaoTransicaoInvalidaException('Contratação não está em seleção de fornecedores.');
         }
 
         if (! UsuarioPodeEditarVendorList::check($usuario, $contratacao)) {
@@ -97,7 +97,7 @@ final class ContratacaoVendorListService
         $contratacao = $this->loadOrFail($uuid, $usuario->tenant_id);
 
         if (! ContratacaoElegivelParaVendorList::check($contratacao)) {
-            throw new ContratacaoTransicaoInvalidaException('Contratação não está em análise de fornecedores.');
+            throw new ContratacaoTransicaoInvalidaException('Contratação não está em seleção de fornecedores.');
         }
 
         $cnpjNorm = FornecedorCnpjUnicoNaContratacao::normalizarCnpj($cnpj);
@@ -141,7 +141,7 @@ final class ContratacaoVendorListService
         $contratacao = $this->loadOrFail($uuid, $usuario->tenant_id);
 
         if (! ContratacaoElegivelParaVendorList::check($contratacao)) {
-            throw new ContratacaoTransicaoInvalidaException('Contratação não está em análise de fornecedores.');
+            throw new ContratacaoTransicaoInvalidaException('Contratação não está em seleção de fornecedores.');
         }
 
         if (! UsuarioPodeEditarVendorList::check($usuario, $contratacao)) {
@@ -168,7 +168,7 @@ final class ContratacaoVendorListService
         $contratacao = $this->loadOrFail($uuid, $usuario->tenant_id);
 
         if (! ContratacaoElegivelParaVendorList::check($contratacao)) {
-            throw new ContratacaoTransicaoInvalidaException('Contratação não está em análise de fornecedores.');
+            throw new ContratacaoTransicaoInvalidaException('Contratação não está em seleção de fornecedores.');
         }
 
         if (! UsuarioPodeEditarVendorList::check($usuario, $contratacao)) {

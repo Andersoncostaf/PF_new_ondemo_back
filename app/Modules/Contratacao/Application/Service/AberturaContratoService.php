@@ -330,6 +330,7 @@ final class AberturaContratoService
         $fornecedor->loadMissing(['aberturaItens.apontamentos']);
 
         return [
+            'status' => AberturaContratoStatus::normalizar($fornecedor->abertura_contrato_status),
             'fornecedor' => ContratacaoFornecedorOutput::fromModel($fornecedor),
             'itens' => $fornecedor->aberturaItens->map(fn (ContratacaoAberturaItem $item) => $this->serializarItem($item))->values()->all(),
         ];
